@@ -51,3 +51,40 @@ export type TimelineEvent = {
   description: string;
   occurredAt?: string;
 };
+export type ReturnRecord = {
+  id: ReturnId;
+  studentId: StudentId;
+  deviceSerial: string;
+  returnStatus: "Received" | "Inspection Required";
+  condition: "Good" | "Screen Damage";
+  accessories: "Complete" | "Missing Charger";
+  outcome: "Ready for Release" | "Repair Required";
+  initiatedDate: string;
+  receivedDate: string;
+  inspectedDate: string | null;
+  assignmentClosedDate: string | null;
+  inspectionNotes: string;
+  repairId: RepairId | null;
+};
+
+export type ReleaseRecord = {
+  id: ReleaseId;
+  deviceSerial: string;
+  source:
+    | {
+        type: "Return";
+        id: ReturnId;
+      }
+    | {
+        type: "Repair";
+        id: RepairId;
+      };
+  eligibility: "Eligible" | "Blocked";
+  action: "Release to Available" | "None";
+  status: "Ready" | "Awaiting Repair Completion";
+  validation:
+    | "Return workflow complete"
+    | "Repair workflow incomplete";
+  releaseDate: string | null;
+  resultingDeviceState: DeviceStatus | null;
+};

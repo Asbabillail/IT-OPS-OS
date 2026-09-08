@@ -1,6 +1,11 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  getDeviceBySerial,
+  getReturnById,
+  getStudentById,
+} from "@/data/domain";
 
 type ReturnDetailPageProps = {
   params: Promise<{
@@ -8,69 +13,12 @@ type ReturnDetailPageProps = {
   }>;
 };
 
-const syntheticReturns = {
-  "RET-2026-001": {
-    id: "RET-2026-001",
-    returnStatus: "Received",
-    condition: "Good",
-    accessories: "Complete",
-    outcome: "Ready for Release",
-    initiatedDate: "2026-09-03",
-    receivedDate: "2026-09-04",
-    inspectedDate: "2026-09-04",
-    assignmentClosedDate: "2026-09-04",
-    inspectionNotes: "Device returned in good operational condition.",
-    student: {
-      name: "Ayaan Rahman",
-      id: "STU-2026-041",
-      href: "/students/STU-2026-041",
-    },
-    device: {
-      assetTag: "YIS-PAD-0412",
-      serial: "DMQR92KX",
-      href: "/devices/DMQR92KX",
-    },
-    repair: null,
-  },
-
-  "RET-2026-002": {
-    id: "RET-2026-002",
-    returnStatus: "Inspection Required",
-    condition: "Screen Damage",
-    accessories: "Missing Charger",
-    outcome: "Repair Required",
-    initiatedDate: "2026-09-08",
-    receivedDate: "2026-09-08",
-    inspectedDate: null,
-    assignmentClosedDate: null,
-    inspectionNotes:
-      "Visible screen damage reported. Charger not returned with device.",
-    student: {
-      name: "Sara Khan",
-      id: "STU-2026-089",
-      href: "/students/STU-2026-089",
-    },
-    device: {
-      assetTag: "YIS-PAD-0413",
-      serial: "F9FT81LP",
-      href: "/devices/F9FT81LP",
-    },
-    repair: {
-      id: "REP-2026-002",
-      href: "/repairs/REP-2026-002",
-    },
-  },
-} as const;
-
 export default async function ReturnDetailPage({
   params,
 }: ReturnDetailPageProps) {
   const { returnId } = await params;
 
-  const record =
-    syntheticReturns[
-      returnId as keyof typeof syntheticReturns
-    ];
+  const record = getReturnById(returnId);
 
   if (!record) {
     return (
@@ -103,6 +51,41 @@ export default async function ReturnDetailPage({
     );
   }
 
+  const student = getStudentById(record.studentId);
+  const device = getDeviceBySerial(record.deviceSerial);
+
+  if (!student || !device) {
+    return (
+      <main className="flex min-h-screen bg-slate-950 text-white">
+        <AppSidebar />
+
+        <section className="flex-1 px-8 py-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-sm font-medium text-slate-500">
+              Return Workflow
+            </p>
+
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              Linked record unavailable
+            </h1>
+
+            <p className="mt-3 text-sm text-slate-400">
+              The return exists, but its linked student or device
+              record could not be resolved.
+            </p>
+
+            <Link
+              href="/returns"
+              className="mt-6 inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-900"
+            >
+              Return to Returns
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -120,7 +103,8 @@ export default async function ReturnDetailPage({
               </h1>
 
               <p className="mt-2 text-sm text-slate-400">
-                Device return, inspection, and assignment closure lifecycle
+                Device return, inspection, and assignment closure
+                lifecycle
               </p>
             </div>
 
@@ -164,10 +148,10 @@ export default async function ReturnDetailPage({
                 </p>
 
                 <Link
-                  href={record.student.href}
+                  href={`/students/${student.id}`}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {record.student.name}
+                  {student.name}
                 </Link>
               </article>
 
@@ -177,10 +161,10 @@ export default async function ReturnDetailPage({
                 </p>
 
                 <Link
-                  href={record.device.href}
+                  href={`/devices/${device.serial}`}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {record.device.assetTag}
+                  {device.assetTag}
                 </Link>
               </article>
             </div>
@@ -194,11 +178,41 @@ export default async function ReturnDetailPage({
             <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
                 <p className="text-sm text-slate-500">
+                  Initiated Date
+                </p>
+
+                <p className="mt-2 font-medium">
+                  {record.initiatedDate}
+                </p>
+              </article>
+
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-500">
                   Received Date
                 </p>
 
                 <p className="mt-2 font-medium">
                   {record.receivedDate}
+                </p>
+              </article>
+
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-500">
+                  Inspected Date
+                </p>
+
+                <p className="mt-2 font-medium">
+                  {record.inspectedDate ?? "Pending"}
+                </p>
+              </article>
+
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-500">
+                  Assignment Closure
+                </p>
+
+                <p className="mt-2 font-medium">
+                  {record.assignmentClosedDate ?? "Pending"}
                 </p>
               </article>
 
@@ -222,17 +236,7 @@ export default async function ReturnDetailPage({
                 </p>
               </article>
 
-              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-                <p className="text-sm text-slate-500">
-                  Assignment Closure
-                </p>
-
-                <p className="mt-2 font-medium">
-                  {record.assignmentClosedDate ?? "Pending"}
-                </p>
-              </article>
-
-              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5 md:col-span-2 xl:col-span-4">
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5 md:col-span-2">
                 <p className="text-sm text-slate-500">
                   Inspection Notes
                 </p>
@@ -244,7 +248,7 @@ export default async function ReturnDetailPage({
             </div>
           </section>
 
-          {record.repair ? (
+          {record.repairId ? (
             <section className="mt-8">
               <h2 className="text-lg font-semibold">
                 Linked Repair
@@ -252,14 +256,15 @@ export default async function ReturnDetailPage({
 
               <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-5">
                 <Link
-                  href={record.repair.href}
+                  href={`/repairs/${record.repairId}`}
                   className="font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {record.repair.id}
+                  {record.repairId}
                 </Link>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  Repair workflow required before device can return to service.
+                  Repair workflow required before this return can
+                  progress to release.
                 </p>
               </div>
             </section>
@@ -277,7 +282,8 @@ export default async function ReturnDetailPage({
                 </p>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  {record.initiatedDate}
+                  {record.initiatedDate} · Device {device.assetTag}
+                  {" "}entered the return workflow
                 </p>
               </div>
 
@@ -287,28 +293,30 @@ export default async function ReturnDetailPage({
                 </p>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  {record.receivedDate}
+                  {record.receivedDate} · Device received from{" "}
+                  {student.name}
                 </p>
               </div>
 
               {record.inspectedDate ? (
                 <div className="border-b border-slate-800 px-5 py-4">
                   <p className="font-medium">
-                    Condition inspection completed
+                    Physical inspection completed
                   </p>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    {record.inspectedDate} · {record.condition}
+                    {record.inspectedDate} · Condition:{" "}
+                    {record.condition}
                   </p>
                 </div>
               ) : (
                 <div className="border-b border-slate-800 px-5 py-4">
                   <p className="font-medium">
-                    Condition inspection pending
+                    Physical inspection pending
                   </p>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Device requires inspection before assignment closure
+                    Inspection is required before assignment closure.
                   </p>
                 </div>
               )}
@@ -320,7 +328,8 @@ export default async function ReturnDetailPage({
                   </p>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    {record.assignmentClosedDate}
+                    {record.assignmentClosedDate} · Student-device
+                    assignment lifecycle closed
                   </p>
                 </div>
               ) : (
@@ -330,20 +339,19 @@ export default async function ReturnDetailPage({
                   </p>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Assignment remains open until return inspection is completed
+                    Current return state must be resolved before
+                    assignment closure.
                   </p>
                 </div>
               )}
 
               <div className="px-5 py-4">
                 <p className="font-medium">
-                  {record.outcome}
+                  Current outcome
                 </p>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  {record.outcome === "Ready for Release"
-                    ? "Device is eligible for the next release workflow."
-                    : "Device must complete the repair workflow before release."}
+                  {record.outcome}
                 </p>
               </div>
             </div>

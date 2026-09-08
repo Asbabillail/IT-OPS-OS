@@ -1,29 +1,11 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-
-const syntheticReturns = [
-  {
-    id: "RET-2026-001",
-    studentName: "Ayaan Rahman",
-    studentId: "STU-2026-041",
-    assetTag: "YIS-PAD-0412",
-    serial: "DMQR92KX",
-    returnStatus: "Received",
-    condition: "Good",
-    outcome: "Ready for Release",
-  },
-  {
-    id: "RET-2026-002",
-    studentName: "Sara Khan",
-    studentId: "STU-2026-089",
-    assetTag: "YIS-PAD-0413",
-    serial: "F9FT81LP",
-    returnStatus: "Inspection Required",
-    condition: "Screen Damage",
-    outcome: "Repair Required",
-  },
-] as const;
+import {
+  getDeviceBySerial,
+  getStudentById,
+  returns,
+} from "@/data/domain";
 
 export default function ReturnsPage() {
   return (
@@ -42,7 +24,8 @@ export default function ReturnsPage() {
             </h1>
 
             <p className="mt-2 text-sm text-slate-400">
-              Track returned devices, condition inspection, assignment closure, and next operational state.
+              Track returned devices, condition inspection, assignment
+              closure, and next operational state.
             </p>
           </header>
 
@@ -69,47 +52,56 @@ export default function ReturnsPage() {
                 <span>Return</span>
               </div>
 
-              {syntheticReturns.map((record) => (
-                <article
-                  key={record.id}
-                  className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1.1fr_1fr_1.1fr_auto] lg:items-center"
-                >
-                  <p className="text-sm text-slate-300">
-                    {record.id}
-                  </p>
+              {returns.map((record) => {
+                const student = getStudentById(record.studentId);
+                const device = getDeviceBySerial(record.deviceSerial);
 
-                  <p className="font-medium text-white">
-                    {record.studentName}
-                  </p>
+                if (!student || !device) {
+                  return null;
+                }
 
-                  <p className="text-sm text-slate-300">
-                    {record.studentId}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {record.assetTag}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {record.serial}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {record.returnStatus}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {record.outcome}
-                  </p>
-
-                  <Link
-                    href={`/returns/${record.id}`}
-                    className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                return (
+                  <article
+                    key={record.id}
+                    className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1.1fr_1fr_1.1fr_auto] lg:items-center"
                   >
-                    Open Return
-                  </Link>
-                </article>
-              ))}
+                    <p className="text-sm text-slate-300">
+                      {record.id}
+                    </p>
+
+                    <p className="font-medium text-white">
+                      {student.name}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {student.id}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {device.assetTag}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {device.serial}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {record.returnStatus}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {record.outcome}
+                    </p>
+
+                    <Link
+                      href={`/returns/${record.id}`}
+                      className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                    >
+                      Open Return
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
           </section>
         </div>

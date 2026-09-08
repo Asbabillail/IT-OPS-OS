@@ -1,6 +1,10 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  getDeviceBySerial,
+  getReleaseById,
+} from "@/data/domain";
 
 type ReleaseDetailPageProps = {
   params: Promise<{
@@ -8,57 +12,12 @@ type ReleaseDetailPageProps = {
   }>;
 };
 
-const syntheticReleases = {
-  "REL-2026-001": {
-    id: "REL-2026-001",
-    eligibility: "Eligible",
-    status: "Ready",
-    action: "Release to Available",
-    validation: "Return workflow complete",
-    releaseDate: null,
-    resultingDeviceState: null,
-    device: {
-      assetTag: "YIS-PAD-0412",
-      serial: "DMQR92KX",
-      href: "/devices/DMQR92KX",
-    },
-    source: {
-      type: "Return",
-      id: "RET-2026-001",
-      href: "/returns/RET-2026-001",
-    },
-  },
-
-  "REL-2026-002": {
-    id: "REL-2026-002",
-    eligibility: "Blocked",
-    status: "Awaiting Repair Completion",
-    action: "None",
-    validation: "Repair workflow incomplete",
-    releaseDate: null,
-    resultingDeviceState: null,
-    device: {
-      assetTag: "YIS-PAD-0413",
-      serial: "F9FT81LP",
-      href: "/devices/F9FT81LP",
-    },
-    source: {
-      type: "Repair",
-      id: "REP-2026-002",
-      href: "/repairs/REP-2026-002",
-    },
-  },
-} as const;
-
 export default async function ReleaseDetailPage({
   params,
 }: ReleaseDetailPageProps) {
   const { releaseId } = await params;
 
-  const release =
-    syntheticReleases[
-      releaseId as keyof typeof syntheticReleases
-    ];
+  const release = getReleaseById(releaseId);
 
   if (!release) {
     return (
@@ -90,6 +49,45 @@ export default async function ReleaseDetailPage({
       </main>
     );
   }
+
+  const device = getDeviceBySerial(release.deviceSerial);
+
+  if (!device) {
+    return (
+      <main className="flex min-h-screen bg-slate-950 text-white">
+        <AppSidebar />
+
+        <section className="flex-1 px-8 py-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-sm font-medium text-slate-500">
+              Release Workflow
+            </p>
+
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              Linked device unavailable
+            </h1>
+
+            <p className="mt-3 text-sm text-slate-400">
+              The release exists, but its linked device record could
+              not be resolved.
+            </p>
+
+            <Link
+              href="/releases"
+              className="mt-6 inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-900"
+            >
+              Return to Releases
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const sourceHref =
+    release.source.type === "Return"
+      ? `/returns/${release.source.id}`
+      : `/repairs/${release.source.id}`;
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -152,10 +150,10 @@ export default async function ReleaseDetailPage({
                 </p>
 
                 <Link
-                  href={release.device.href}
+                  href={`/devices/${device.serial}`}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {release.device.assetTag}
+                  {device.assetTag}
                 </Link>
               </article>
 
@@ -165,7 +163,7 @@ export default async function ReleaseDetailPage({
                 </p>
 
                 <Link
-                  href={release.source.href}
+                  href={sourceHref}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
                   {release.source.id}
@@ -234,7 +232,7 @@ export default async function ReleaseDetailPage({
                 </p>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  Device {release.device.assetTag} entered release evaluation
+                  Device {device.assetTag} entered release evaluation
                 </p>
               </div>
 
@@ -270,37 +268,15 @@ export default async function ReleaseDetailPage({
                 </div>
               )}
 
-              {release.releaseDate ? (
-                <div className="px-5 py-4">
-                  <p className="font-medium">
-                    Release completed
-                  </p>
+              <div className="px-5 py-4">
+                <p className="font-medium">
+                  Current release state
+                </p>
 
-                  <p className="mt-1 text-sm text-slate-500">
-                    {release.releaseDate} · {release.resultingDeviceState}
-                  </p>
-                </div>
-              ) : release.eligibility === "Eligible" ? (
-                <div className="px-5 py-4">
-                  <p className="font-medium">
-                    Release pending execution
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Device is eligible but has not yet been released
-                  </p>
-                </div>
-              ) : (
-                <div className="px-5 py-4">
-                  <p className="font-medium">
-                    Release cannot proceed
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Complete the blocking source workflow before release
-                  </p>
-                </div>
-              )}
+                <p className="mt-1 text-sm text-slate-500">
+                  {release.status}
+                </p>
+              </div>
             </div>
           </section>
         </div>

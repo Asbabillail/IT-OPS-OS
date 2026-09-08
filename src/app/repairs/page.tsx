@@ -1,29 +1,10 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-
-const syntheticRepairs = [
-  {
-    id: "REP-2026-001",
-    assetTag: "YIS-PAD-0412",
-    serial: "DMQR92KX",
-    owner: "Ayaan Rahman",
-    issue: "Cracked Display",
-    priority: "High",
-    status: "In Repair",
-    openedDate: "2026-09-05",
-  },
-  {
-    id: "REP-2026-002",
-    assetTag: "YIS-PAD-0413",
-    serial: "F9FT81LP",
-    owner: "Unassigned",
-    issue: "Battery Health",
-    priority: "Medium",
-    status: "Awaiting Parts",
-    openedDate: "2026-09-07",
-  },
-] as const;
+import {
+  getDeviceBySerial,
+  repairs,
+} from "@/data/domain";
 
 export default function RepairsPage() {
   return (
@@ -42,7 +23,8 @@ export default function RepairsPage() {
             </h1>
 
             <p className="mt-2 text-sm text-slate-400">
-              Track damaged devices, repair progress, vendor activity, and return-to-service state.
+              Track damaged devices, repair progress, vendor activity,
+              and return-to-service state.
             </p>
           </header>
 
@@ -69,47 +51,57 @@ export default function RepairsPage() {
                 <span>Case</span>
               </div>
 
-              {syntheticRepairs.map((repair) => (
-                <article
-                  key={repair.id}
-                  className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1fr_1fr_1.2fr_0.8fr_1fr_1fr_auto] lg:items-center"
-                >
-                  <p className="text-sm text-slate-300">
-                    {repair.id}
-                  </p>
+              {repairs.map((repair) => {
+                const device = getDeviceBySerial(
+                  repair.deviceSerial,
+                );
 
-                  <p className="font-medium text-white">
-                    {repair.assetTag}
-                  </p>
+                if (!device) {
+                  return null;
+                }
 
-                  <p className="text-sm text-slate-300">
-                    {repair.serial}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {repair.issue}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {repair.priority}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {repair.status}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {repair.openedDate}
-                  </p>
-
-                  <Link
-                    href={`/repairs/${repair.id}`}
-                    className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                return (
+                  <article
+                    key={repair.id}
+                    className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1fr_1fr_1.2fr_0.8fr_1fr_1fr_auto] lg:items-center"
                   >
-                    Open Case
-                  </Link>
-                </article>
-              ))}
+                    <p className="text-sm text-slate-300">
+                      {repair.id}
+                    </p>
+
+                    <p className="font-medium text-white">
+                      {device.assetTag}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {device.serial}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {repair.issue}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {repair.priority}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {repair.status}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {repair.openedDate}
+                    </p>
+
+                    <Link
+                      href={`/repairs/${repair.id}`}
+                      className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                    >
+                      Open Case
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
           </section>
         </div>

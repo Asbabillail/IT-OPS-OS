@@ -14,6 +14,7 @@ export type {
   TimelineEvent,
   ReleaseRecord,
   ReturnRecord,
+  RepairRecord,
 } from "./types";
 
 export {
@@ -40,3 +41,7 @@ export {
   releases,
   getReleaseById,
 } from "./releases";
+export {
+  repairs,
+  getRepairById,
+} from "./repairs";

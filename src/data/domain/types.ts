@@ -88,3 +88,17 @@ export type ReleaseRecord = {
   releaseDate: string | null;
   resultingDeviceState: DeviceStatus | null;
 };
+export type RepairRecord = {
+  id: RepairId;
+  deviceSerial: string;
+  ownerStudentId: StudentId | null;
+  issue: string;
+  priority: "High" | "Medium" | "Low";
+  status: "In Repair" | "Awaiting Parts";
+  openedDate: string;
+  diagnosis: string;
+  serviceRoute: "External Service" | "Internal Repair";
+  sentForServiceDate: string;
+  completedDate: string | null;
+  verifiedDate: string | null;
+};

@@ -1,6 +1,11 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  getDeviceBySerial,
+  getRepairById,
+  getStudentById,
+} from "@/data/domain";
 
 type RepairDetailPageProps = {
   params: Promise<{
@@ -8,59 +13,12 @@ type RepairDetailPageProps = {
   }>;
 };
 
-const syntheticRepairs = {
-  "REP-2026-001": {
-    id: "REP-2026-001",
-    issue: "Cracked Display",
-    priority: "High",
-    status: "In Repair",
-    openedDate: "2026-09-05",
-    device: {
-      assetTag: "YIS-PAD-0412",
-      serial: "DMQR92KX",
-      href: "/devices/DMQR92KX",
-    },
-    owner: {
-      name: "Ayaan Rahman",
-      id: "STU-2026-041",
-      href: "/students/STU-2026-041",
-    },
-    diagnosis: "Display assembly damaged after impact.",
-    serviceRoute: "External Service",
-    sentForServiceDate: "2026-09-06",
-    completedDate: null,
-    verifiedDate: null,
-  },
-
-  "REP-2026-002": {
-    id: "REP-2026-002",
-    issue: "Battery Health",
-    priority: "Medium",
-    status: "Awaiting Parts",
-    openedDate: "2026-09-07",
-    device: {
-      assetTag: "YIS-PAD-0413",
-      serial: "F9FT81LP",
-      href: "/devices/F9FT81LP",
-    },
-    owner: null,
-    diagnosis: "Battery capacity below operational threshold.",
-    serviceRoute: "Internal Repair",
-    sentForServiceDate: "2026-09-07",
-    completedDate: null,
-    verifiedDate: null,
-  },
-} as const;
-
 export default async function RepairDetailPage({
   params,
 }: RepairDetailPageProps) {
   const { repairId } = await params;
 
-  const repair =
-    syntheticRepairs[
-      repairId as keyof typeof syntheticRepairs
-    ];
+  const repair = getRepairById(repairId);
 
   if (!repair) {
     return (
@@ -79,6 +37,44 @@ export default async function RepairDetailPage({
 
             <p className="mt-3 text-sm text-slate-400">
               No synthetic repair case exists for {repairId}.
+            </p>
+
+            <Link
+              href="/repairs"
+              className="mt-6 inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-900"
+            >
+              Return to Repairs
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const device = getDeviceBySerial(repair.deviceSerial);
+
+  const owner = repair.ownerStudentId
+    ? getStudentById(repair.ownerStudentId)
+    : null;
+
+  if (!device) {
+    return (
+      <main className="flex min-h-screen bg-slate-950 text-white">
+        <AppSidebar />
+
+        <section className="flex-1 px-8 py-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-sm font-medium text-slate-500">
+              Repair Case
+            </p>
+
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              Linked device unavailable
+            </h1>
+
+            <p className="mt-3 text-sm text-slate-400">
+              The repair exists, but its linked device record could
+              not be resolved.
             </p>
 
             <Link
@@ -154,10 +150,10 @@ export default async function RepairDetailPage({
                 </p>
 
                 <Link
-                  href={repair.device.href}
+                  href={`/devices/${device.serial}`}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {repair.device.assetTag}
+                  {device.assetTag}
                 </Link>
               </article>
 
@@ -166,12 +162,12 @@ export default async function RepairDetailPage({
                   Owner
                 </p>
 
-                {repair.owner ? (
+                {owner ? (
                   <Link
-                    href={repair.owner.href}
+                    href={`/students/${owner.id}`}
                     className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                   >
-                    {repair.owner.name}
+                    {owner.name}
                   </Link>
                 ) : (
                   <p className="mt-2 font-medium">

@@ -43,7 +43,7 @@ const navigationItems: NavigationItem[] = [
   },
   {
     label: "AppleCare",
-    href: null,
+    href: "/applecare",
   },
   {
     label: "Returns",

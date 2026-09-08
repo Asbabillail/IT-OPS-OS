@@ -1,69 +1,127 @@
+"use client";
+
 import Link from "next/link";
-const navigationItems = [
-  "Dashboard",
-  "Global Search",
-  "Students",
-  "Faculty",
-  "iPad Inventory",
-  "Distribution",
-  "BYOD",
-  "Repairs",
-  "AppleCare",
-  "Returns",
-  "Releases",
-  "Documents",
-  "Reports",
-  "Administration",
-] as const;
+import { usePathname } from "next/navigation";
+
+type NavigationItem = {
+  label: string;
+  href: string | null;
+};
+
+const navigationItems: NavigationItem[] = [
+  {
+    label: "Dashboard",
+    href: "/",
+  },
+  {
+    label: "Global Search",
+    href: "/#global-search",
+  },
+  {
+    label: "Students",
+    href: "/students",
+  },
+  {
+    label: "Faculty",
+    href: "/faculty",
+  },
+  {
+    label: "iPad Inventory",
+    href: "/devices",
+  },
+  {
+    label: "Distribution",
+    href: null,
+  },
+  {
+    label: "BYOD",
+    href: null,
+  },
+  {
+    label: "Repairs",
+    href: null,
+  },
+  {
+    label: "AppleCare",
+    href: null,
+  },
+  {
+    label: "Returns",
+    href: null,
+  },
+  {
+    label: "Releases",
+    href: null,
+  },
+  {
+    label: "Documents",
+    href: null,
+  },
+  {
+    label: "Reports",
+    href: null,
+  },
+  {
+    label: "Administration",
+    href: null,
+  },
+];
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
-    <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-slate-950 px-5 py-6 text-slate-100">
-      <div className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-          Yenepoya International Schools
+    <aside className="sticky top-0 h-screen w-80 shrink-0 overflow-y-auto border-r border-slate-800 bg-slate-950 px-6 py-8 text-white">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+          Yenepoya International
+          <br />
+          Schools
         </p>
 
-        <h2 className="mt-2 text-xl font-bold tracking-tight">
+        <p className="mt-3 text-2xl font-bold tracking-tight">
           IT OPS OS
-        </h2>
+        </p>
       </div>
 
-      <nav aria-label="Primary navigation">
-        <ul className="space-y-1">
-          {navigationItems.map((item) => (
-            <li key={item}>
-              {item === "Students" ? (
-                <Link
-                  href="/students"
-                  className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
-                >
-                  {item}
-                </Link>
-              ) : item === "Faculty" ? (
-                <Link
-                  href="/faculty"
-                  className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
-                >
-                  {item}
-                </Link>
-              ) : item === "iPad Inventory" ? (
-                <Link
-                  href="/devices"
-                  className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
-                >
-                  {item}
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
-                >
-                  {item}
-                </button>
-              )}
-            </li>
-          ))}
+      <nav
+        aria-label="Primary navigation"
+        className="mt-12"
+      >
+        <ul className="space-y-2">
+          {navigationItems.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : item.href !== null &&
+                  item.href !== "/#global-search" &&
+                  pathname.startsWith(item.href);
+
+            return (
+              <li key={item.label}>
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className={[
+                      "block w-full rounded-lg px-3 py-2 text-left text-sm transition",
+                      isActive
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-300 hover:bg-slate-900 hover:text-white",
+                    ].join(" ")}
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                  >
+                    {item.label}
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </aside>

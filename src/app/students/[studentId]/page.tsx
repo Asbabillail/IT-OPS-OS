@@ -24,7 +24,23 @@ const syntheticStudents = {
       status: "Assigned",
     },
   },
+    "STU-2026-089": {
+    studentId: "STU-2026-089",
+    name: "Sara Khan",
+    grade: "8B",
+    email: "sara.khan@yis.edu.sa",
+    guardian: "Ahmed Khan",
+    guardianPhone: "+966 50 987 6543",
+    enrollmentStatus: "Active",
+    device: {
+      serial: "—",
+      assetTag: "—",
+      model: "—",
+      status: "Not Assigned",
+    },
+  },
 } as const;
+
 
 export default async function StudentProfilePage({
   params,
@@ -95,52 +111,60 @@ export default async function StudentProfilePage({
           </header>
 
           <section
-            aria-labelledby="student-details"
-            className="mt-8"
+            aria-labelledby="student-timeline"
+            className="mt-8 pb-8"
           >
             <h2
-              id="student-details"
+              id="student-timeline"
               className="text-lg font-semibold"
             >
-              Student Details
+              Timeline
             </h2>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-                <p className="text-sm text-slate-500">
-                  Student ID
+            <div className="mt-4 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+              <div className="border-b border-slate-800 px-5 py-4">
+                <p className="font-medium">
+                  Student record created
                 </p>
-                <p className="mt-2 font-medium">
-                  {student.studentId}
-                </p>
-              </article>
 
-              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-                <p className="text-sm text-slate-500">
-                  School Email
+                <p className="mt-1 text-sm text-slate-500">
+                  Synthetic enrollment intake completed
                 </p>
-                <p className="mt-2 font-medium">
-                  {student.email}
-                </p>
-              </article>
+             </div>
 
-              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-                <p className="text-sm text-slate-500">
-                  Enrollment
-                </p>
-                <p className="mt-2 font-medium">
-                  {student.enrollmentStatus}
-                </p>
-              </article>
+             {student.device.status === "Assigned" ? (
+               <>
+                 <div className="border-b border-slate-800 px-5 py-4">
+                   <p className="font-medium">
+                     Device assigned
+                   </p>
 
-              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-                <p className="text-sm text-slate-500">
-                  Grade
-                </p>
-                <p className="mt-2 font-medium">
-                  {student.grade}
-                </p>
-              </article>
+                   <p className="mt-1 text-sm text-slate-500">
+                     {student.device.assetTag} · {student.device.serial}
+                  </p>
+                 </div>
+
+                 <div className="px-5 py-4">
+                   <p className="font-medium">
+                     Distribution form verified
+                   </p>
+
+                   <p className="mt-1 text-sm text-slate-500">
+                     Physical document verification recorded by IT
+                   </p>
+                 </div>
+                </>
+              ) : (
+                <div className="px-5 py-4">
+                  <p className="font-medium">
+                    Awaiting device assignment
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    No active device assignment exists
+                  </p>
+                </div>
+              )}
             </div>
           </section>
 

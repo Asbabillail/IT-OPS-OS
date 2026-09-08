@@ -1,3 +1,4 @@
+import Link from "next/link";
 const navigationItems = [
   "Dashboard",
   "Global Search",
@@ -32,12 +33,21 @@ export function AppSidebar() {
         <ul className="space-y-1">
           {navigationItems.map((item) => (
             <li key={item}>
-              <button
-                type="button"
-                className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
-              >
-                {item}
-              </button>
+              {item === "Students" ? (
+                <Link
+                  href="/students"
+                  className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                >
+                  {item}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                >
+                  {item}
+                </button>
+              )}
             </li>
           ))}
         </ul>

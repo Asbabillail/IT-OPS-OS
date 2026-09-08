@@ -16,7 +16,7 @@ const syntheticReleases = {
     action: "Release to Available",
     validation: "Return workflow complete",
     releaseDate: null,
-    resultingDeviceState: "Available",
+    resultingDeviceState: null,
     device: {
       assetTag: "YIS-PAD-0412",
       serial: "DMQR92KX",

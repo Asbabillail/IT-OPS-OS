@@ -155,6 +155,52 @@ export default function Home() {
               </div>
             </div>
           </section>
+                    <section
+            aria-labelledby="recent-activity"
+            className="mt-8 pb-8"
+          >
+            <div className="mb-4">
+              <h2
+                id="recent-activity"
+                className="text-lg font-semibold text-white"
+              >
+                Recent Activity
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Synthetic lifecycle events
+              </p>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+              <div className="border-b border-slate-800 px-5 py-4">
+                <p className="font-medium text-white">
+                  Device assigned to student
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  STU-2026-041 · iPad serial DMQR92KX
+                </p>
+              </div>
+
+              <div className="border-b border-slate-800 px-5 py-4">
+                <p className="font-medium text-white">
+                  Signed distribution form verified
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Document verification completed by IT
+                </p>
+              </div>
+
+              <div className="px-5 py-4">
+                <p className="font-medium text-white">
+                  Repair case opened
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Asset YIS-PAD-0412 moved to In Repair
+                </p>
+              </div>
+            </div>
+          </section>
           </div>
         </div>
       </section>

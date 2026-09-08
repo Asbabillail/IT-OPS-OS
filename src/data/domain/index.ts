@@ -1,4 +1,5 @@
 export type {
+  AppleCareClaim,
   AppleCareClaimId,
   ByodId,
   Device,
@@ -32,6 +33,7 @@ export {
   getDeviceByAssetTag,
   getDeviceBySerial,
 } from "./devices";
+
 export {
   returns,
   getReturnById,
@@ -41,7 +43,13 @@ export {
   releases,
   getReleaseById,
 } from "./releases";
+
 export {
   repairs,
   getRepairById,
 } from "./repairs";
+
+export {
+  appleCareClaims,
+  getAppleCareClaimById,
+} from "./applecare";

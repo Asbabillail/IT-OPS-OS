@@ -1,6 +1,12 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  getAppleCareClaimById,
+  getDeviceBySerial,
+  getRepairById,
+  getStudentById,
+} from "@/data/domain";
 
 type AppleCareClaimPageProps = {
   params: Promise<{
@@ -8,61 +14,12 @@ type AppleCareClaimPageProps = {
   }>;
 };
 
-const syntheticClaims = {
-  "AC-2026-001": {
-    id: "AC-2026-001",
-    coverage: "Active",
-    claimStatus: "Submitted",
-    issue: "Accidental Damage",
-    serviceType: "Display Repair",
-    submittedDate: "2026-09-06",
-    decisionDate: null,
-    device: {
-      assetTag: "YIS-PAD-0412",
-      serial: "DMQR92KX",
-      href: "/devices/DMQR92KX",
-    },
-    repair: {
-      id: "REP-2026-001",
-      href: "/repairs/REP-2026-001",
-    },
-    owner: {
-      name: "Ayaan Rahman",
-      id: "STU-2026-041",
-      href: "/students/STU-2026-041",
-    },
-  },
-
-  "AC-2026-002": {
-    id: "AC-2026-002",
-    coverage: "Active",
-    claimStatus: "Not Required",
-    issue: "Battery Service",
-    serviceType: "Internal Battery Service",
-    submittedDate: null,
-    decisionDate: null,
-    device: {
-      assetTag: "YIS-PAD-0413",
-      serial: "F9FT81LP",
-      href: "/devices/F9FT81LP",
-    },
-    repair: {
-      id: "REP-2026-002",
-      href: "/repairs/REP-2026-002",
-    },
-    owner: null,
-  },
-} as const;
-
 export default async function AppleCareClaimPage({
   params,
 }: AppleCareClaimPageProps) {
   const { claimId } = await params;
 
-  const claim =
-    syntheticClaims[
-      claimId as keyof typeof syntheticClaims
-    ];
+  const claim = getAppleCareClaimById(claimId);
 
   if (!claim) {
     return (
@@ -81,6 +38,45 @@ export default async function AppleCareClaimPage({
 
             <p className="mt-3 text-sm text-slate-400">
               No synthetic AppleCare claim exists for {claimId}.
+            </p>
+
+            <Link
+              href="/applecare"
+              className="mt-6 inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-900"
+            >
+              Return to AppleCare
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const device = getDeviceBySerial(claim.deviceSerial);
+  const repair = getRepairById(claim.repairId);
+
+  const owner = claim.ownerStudentId
+    ? getStudentById(claim.ownerStudentId)
+    : null;
+
+  if (!device || !repair) {
+    return (
+      <main className="flex min-h-screen bg-slate-950 text-white">
+        <AppSidebar />
+
+        <section className="flex-1 px-8 py-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-sm font-medium text-slate-500">
+              AppleCare Claim
+            </p>
+
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              Linked record unavailable
+            </h1>
+
+            <p className="mt-3 text-sm text-slate-400">
+              The claim exists, but its linked device or repair record
+              could not be resolved.
             </p>
 
             <Link
@@ -156,10 +152,10 @@ export default async function AppleCareClaimPage({
                 </p>
 
                 <Link
-                  href={claim.device.href}
+                  href={`/devices/${device.serial}`}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {claim.device.assetTag}
+                  {device.assetTag}
                 </Link>
               </article>
 
@@ -169,10 +165,10 @@ export default async function AppleCareClaimPage({
                 </p>
 
                 <Link
-                  href={claim.repair.href}
+                  href={`/repairs/${repair.id}`}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {claim.repair.id}
+                  {repair.id}
                 </Link>
               </article>
             </div>
@@ -226,7 +222,7 @@ export default async function AppleCareClaimPage({
             </div>
           </section>
 
-          {claim.owner ? (
+          {owner ? (
             <section className="mt-8">
               <h2 className="text-lg font-semibold">
                 Current Owner
@@ -234,14 +230,14 @@ export default async function AppleCareClaimPage({
 
               <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-5">
                 <Link
-                  href={claim.owner.href}
+                  href={`/students/${owner.id}`}
                   className="font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {claim.owner.name}
+                  {owner.name}
                 </Link>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  {claim.owner.id}
+                  {owner.id}
                 </p>
               </div>
             </section>
@@ -269,7 +265,7 @@ export default async function AppleCareClaimPage({
                 </p>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  {claim.repair.id}
+                  {repair.id}
                 </p>
               </div>
 

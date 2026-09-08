@@ -1,27 +1,10 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-
-const syntheticClaims = [
-  {
-    id: "AC-2026-001",
-    assetTag: "YIS-PAD-0412",
-    serial: "DMQR92KX",
-    repairId: "REP-2026-001",
-    coverage: "Active",
-    claimStatus: "Submitted",
-    issue: "Accidental Damage",
-  },
-  {
-    id: "AC-2026-002",
-    assetTag: "YIS-PAD-0413",
-    serial: "F9FT81LP",
-    repairId: "REP-2026-002",
-    coverage: "Active",
-    claimStatus: "Not Required",
-    issue: "Battery Service",
-  },
-] as const;
+import {
+  appleCareClaims,
+  getDeviceBySerial,
+} from "@/data/domain";
 
 export default function AppleCarePage() {
   return (
@@ -40,7 +23,8 @@ export default function AppleCarePage() {
             </h1>
 
             <p className="mt-2 text-sm text-slate-400">
-              Track AppleCare coverage, linked repairs, claim processing, and service outcomes.
+              Track AppleCare coverage, linked repairs, claim processing,
+              and service outcomes.
             </p>
           </header>
 
@@ -67,47 +51,55 @@ export default function AppleCarePage() {
                 <span>Claim</span>
               </div>
 
-              {syntheticClaims.map((claim) => (
-                <article
-                  key={claim.id}
-                  className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1fr_1fr_1fr_0.9fr_1fr_1.2fr_auto] lg:items-center"
-                >
-                  <p className="text-sm text-slate-300">
-                    {claim.id}
-                  </p>
+              {appleCareClaims.map((claim) => {
+                const device = getDeviceBySerial(claim.deviceSerial);
 
-                  <p className="font-medium text-white">
-                    {claim.assetTag}
-                  </p>
+                if (!device) {
+                  return null;
+                }
 
-                  <p className="text-sm text-slate-300">
-                    {claim.serial}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {claim.repairId}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {claim.coverage}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {claim.claimStatus}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {claim.issue}
-                  </p>
-
-                  <Link
-                    href={`/applecare/${claim.id}`}
-                    className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                return (
+                  <article
+                    key={claim.id}
+                    className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1fr_1fr_1fr_0.9fr_1fr_1.2fr_auto] lg:items-center"
                   >
-                    Open Claim
-                  </Link>
-                </article>
-              ))}
+                    <p className="text-sm text-slate-300">
+                      {claim.id}
+                    </p>
+
+                    <p className="font-medium text-white">
+                      {device.assetTag}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {device.serial}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {claim.repairId}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {claim.coverage}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {claim.claimStatus}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {claim.issue}
+                    </p>
+
+                    <Link
+                      href={`/applecare/${claim.id}`}
+                      className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                    >
+                      Open Claim
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
           </section>
         </div>

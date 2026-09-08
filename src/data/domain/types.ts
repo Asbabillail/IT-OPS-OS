@@ -102,3 +102,15 @@ export type RepairRecord = {
   completedDate: string | null;
   verifiedDate: string | null;
 };
+export type AppleCareClaim = {
+  id: AppleCareClaimId;
+  deviceSerial: string;
+  repairId: RepairId;
+  ownerStudentId: StudentId | null;
+  coverage: "Active";
+  claimStatus: "Submitted" | "Not Required";
+  issue: "Accidental Damage" | "Battery Service";
+  serviceType: "Display Repair" | "Internal Battery Service";
+  submittedDate: string | null;
+  decisionDate: string | null;
+};

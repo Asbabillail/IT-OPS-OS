@@ -1,6 +1,10 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  devices,
+  getFacultyById,
+} from "@/data/domain";
 
 type FacultyProfilePageProps = {
   params: Promise<{
@@ -8,45 +12,14 @@ type FacultyProfilePageProps = {
   }>;
 };
 
-const syntheticFaculty = {
-  "FAC-2026-012": {
-    facultyId: "FAC-2026-012",
-    name: "Nadia Farooq",
-    department: "Mathematics",
-    email: "nadia.farooq@yis.edu.sa",
-    employmentStatus: "Active",
-    device: {
-      serial: "FACDMQ521",
-      assetTag: "YIS-PAD-0521",
-      model: "iPad",
-      status: "Assigned",
-    },
-  },
-
-  "FAC-2026-019": {
-    facultyId: "FAC-2026-019",
-    name: "Omar Siddiqui",
-    department: "Science",
-    email: "omar.siddiqui@yis.edu.sa",
-    employmentStatus: "Active",
-    device: {
-      serial: "—",
-      assetTag: "—",
-      model: "—",
-      status: "Not Assigned",
-    },
-  },
-} as const;
-
 export default async function FacultyProfilePage({
   params,
 }: FacultyProfilePageProps) {
   const { facultyId } = await params;
 
-  const faculty =
-    syntheticFaculty[facultyId as keyof typeof syntheticFaculty];
+  const facultyMember = getFacultyById(facultyId);
 
-  if (!faculty) {
+  if (!facultyMember) {
     return (
       <main className="flex min-h-screen bg-slate-950 text-white">
         <AppSidebar />
@@ -77,7 +50,10 @@ export default async function FacultyProfilePage({
     );
   }
 
-  const hasAssignedDevice = faculty.device.status === "Assigned";
+  const assignedDevice = devices.find(
+    (device) =>
+      device.assignedFacultyId === facultyMember.id,
+  );
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -92,11 +68,11 @@ export default async function FacultyProfilePage({
               </p>
 
               <h1 className="mt-1 text-3xl font-bold tracking-tight">
-                {faculty.name}
+                {facultyMember.name}
               </h1>
 
               <p className="mt-2 text-sm text-slate-400">
-                {faculty.facultyId} · {faculty.department}
+                {facultyMember.id} · {facultyMember.department}
               </p>
             </div>
 
@@ -126,7 +102,7 @@ export default async function FacultyProfilePage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {faculty.facultyId}
+                  {facultyMember.id}
                 </p>
               </article>
 
@@ -136,7 +112,7 @@ export default async function FacultyProfilePage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {faculty.department}
+                  {facultyMember.department}
                 </p>
               </article>
 
@@ -146,7 +122,7 @@ export default async function FacultyProfilePage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {faculty.email}
+                  {facultyMember.email}
                 </p>
               </article>
 
@@ -156,7 +132,7 @@ export default async function FacultyProfilePage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {faculty.employmentStatus}
+                  {facultyMember.employmentStatus}
                 </p>
               </article>
             </div>
@@ -180,7 +156,7 @@ export default async function FacultyProfilePage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {faculty.device.serial}
+                  {assignedDevice?.serial ?? "—"}
                 </p>
               </article>
 
@@ -190,7 +166,7 @@ export default async function FacultyProfilePage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {faculty.device.assetTag}
+                  {assignedDevice?.assetTag ?? "—"}
                 </p>
               </article>
 
@@ -200,7 +176,7 @@ export default async function FacultyProfilePage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {faculty.device.model}
+                  {assignedDevice?.model ?? "—"}
                 </p>
               </article>
 
@@ -210,10 +186,19 @@ export default async function FacultyProfilePage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {faculty.device.status}
+                  {assignedDevice?.status ?? "Not Assigned"}
                 </p>
               </article>
             </div>
+
+            {assignedDevice ? (
+              <Link
+                href={`/devices/${assignedDevice.serial}`}
+                className="mt-4 inline-flex text-sm font-medium text-slate-300 underline decoration-slate-600 underline-offset-4 transition hover:text-white"
+              >
+                Open Device Profile
+              </Link>
+            ) : null}
           </section>
 
           <section
@@ -238,7 +223,7 @@ export default async function FacultyProfilePage({
                 </p>
               </div>
 
-              {hasAssignedDevice ? (
+              {assignedDevice ? (
                 <>
                   <div className="border-b border-slate-800 px-5 py-4">
                     <p className="font-medium">
@@ -246,7 +231,7 @@ export default async function FacultyProfilePage({
                     </p>
 
                     <p className="mt-1 text-sm text-slate-500">
-                      {faculty.device.assetTag} · {faculty.device.serial}
+                      {assignedDevice.assetTag} · {assignedDevice.serial}
                     </p>
                   </div>
 

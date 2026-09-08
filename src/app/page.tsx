@@ -36,6 +36,61 @@ export default function Home() {
               placeholder="Search student, faculty, ID, email, serial number, or asset tag..."
               className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-slate-600"
             />
+                      <section
+            aria-labelledby="operational-overview"
+            className="mt-8"
+          >
+            <div className="mb-4">
+              <h2
+                id="operational-overview"
+                className="text-lg font-semibold text-white"
+              >
+                Operational Overview
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Synthetic Phase 1 development data
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-400">
+                  Students
+                </p>
+                <p className="mt-2 text-3xl font-bold text-white">
+                  248
+                </p>
+              </article>
+
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-400">
+                  Assigned iPads
+                </p>
+                <p className="mt-2 text-3xl font-bold text-white">
+                  216
+                </p>
+              </article>
+
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-400">
+                  Available iPads
+                </p>
+                <p className="mt-2 text-3xl font-bold text-white">
+                  18
+                </p>
+              </article>
+
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-400">
+                  In Repair
+                </p>
+                <p className="mt-2 text-3xl font-bold text-white">
+                  7
+                </p>
+              </article>
+            </div>
+          </section>
           </div>
         </div>
       </section>

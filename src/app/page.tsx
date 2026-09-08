@@ -91,6 +91,70 @@ export default function Home() {
               </article>
             </div>
           </section>
+                    <section
+            aria-labelledby="action-required"
+            className="mt-8"
+          >
+            <div className="mb-4">
+              <h2
+                id="action-required"
+                className="text-lg font-semibold text-white"
+              >
+                Action Required
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Synthetic workflow queue
+              </p>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+              <div className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-slate-800 px-5 py-4">
+                <div>
+                  <p className="font-medium text-white">
+                    Pending physical signatures
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Distribution forms awaiting signed-paper return
+                  </p>
+                </div>
+
+                <span className="rounded-full bg-slate-800 px-3 py-1 text-sm font-semibold text-slate-200">
+                  12
+                </span>
+              </div>
+
+              <div className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-slate-800 px-5 py-4">
+                <div>
+                  <p className="font-medium text-white">
+                    Pending verification
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Signed documents waiting for IT verification
+                  </p>
+                </div>
+
+                <span className="rounded-full bg-slate-800 px-3 py-1 text-sm font-semibold text-slate-200">
+                  6
+                </span>
+              </div>
+
+              <div className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-4">
+                <div>
+                  <p className="font-medium text-white">
+                    Open repair cases
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Devices currently moving through the repair workflow
+                  </p>
+                </div>
+
+                <span className="rounded-full bg-slate-800 px-3 py-1 text-sm font-semibold text-slate-200">
+                  7
+                </span>
+              </div>
+            </div>
+          </section>
           </div>
         </div>
       </section>

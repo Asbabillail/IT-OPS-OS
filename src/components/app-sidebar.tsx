@@ -17,7 +17,7 @@ const navigationItems = [
 
 export function AppSidebar() {
   return (
-    <aside className="flex min-h-screen w-72 flex-col border-r border-slate-800 bg-slate-950 px-5 py-6 text-slate-100">
+    <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-slate-950 px-5 py-6 text-slate-100">
       <div className="mb-8">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
           Yenepoya International Schools

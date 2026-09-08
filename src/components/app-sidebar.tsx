@@ -31,7 +31,7 @@ const navigationItems: NavigationItem[] = [
   },
   {
     label: "Distribution",
-    href: null,
+    href: "/distribution",
   },
   {
     label: "BYOD",

@@ -40,6 +40,13 @@ export function AppSidebar() {
                 >
                   {item}
                 </Link>
+              ) : item === "Faculty" ? (
+                <Link
+                  href="/faculty"
+                  className="block w-full rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                >
+                  {item}
+                </Link>
               ) : item === "iPad Inventory" ? (
                 <Link
                   href="/devices"

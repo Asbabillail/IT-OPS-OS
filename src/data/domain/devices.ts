@@ -1,6 +1,6 @@
 import type { Device } from "./types";
 
-export const devices = [
+export const devices: readonly Device[] = [
   {
     serial: "DMQR92KX",
     assetTag: "YIS-PAD-0412",
@@ -17,12 +17,12 @@ export const devices = [
     assetTag: "YIS-PAD-0413",
     model: "iPad",
     storage: "256 GB",
-    status: "Available",
+    status: "Awaiting Parts",
     purchaseDate: "2026-01-15",
     warrantyStatus: "Active",
     appleCareStatus: "Active",
   },
-] satisfies readonly Device[];
+];
 
 export function getDeviceBySerial(
   serial: string,

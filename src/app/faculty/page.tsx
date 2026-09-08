@@ -1,25 +1,10 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-
-const syntheticFaculty = [
-  {
-    facultyId: "FAC-2026-012",
-    name: "Nadia Farooq",
-    department: "Mathematics",
-    email: "nadia.farooq@yis.edu.sa",
-    deviceStatus: "Assigned",
-    assetTag: "YIS-PAD-0521",
-  },
-  {
-    facultyId: "FAC-2026-019",
-    name: "Omar Siddiqui",
-    department: "Science",
-    email: "omar.siddiqui@yis.edu.sa",
-    deviceStatus: "Not Assigned",
-    assetTag: null,
-  },
-] as const;
+import {
+  devices,
+  faculty,
+} from "@/data/domain";
 
 export default function FacultyPage() {
   return (
@@ -39,7 +24,8 @@ export default function FacultyPage() {
               </h1>
 
               <p className="mt-2 text-sm text-slate-400">
-                Browse faculty records and open their 360° operational profiles.
+                Browse faculty records and open their 360° operational
+                profiles.
               </p>
             </div>
 
@@ -79,43 +65,50 @@ export default function FacultyPage() {
                 <span>Profile</span>
               </div>
 
-              {syntheticFaculty.map((faculty) => (
-                <article
-                  key={faculty.facultyId}
-                  className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1.1fr_1fr_1fr_1.3fr_0.9fr_0.9fr_auto] lg:items-center"
-                >
-                  <p className="font-medium text-white">
-                    {faculty.name}
-                  </p>
+              {faculty.map((member) => {
+                const assignedDevice = devices.find(
+                  (device) =>
+                    device.assignedFacultyId === member.id,
+                );
 
-                  <p className="text-sm text-slate-300">
-                    {faculty.facultyId}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {faculty.department}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {faculty.email}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {faculty.deviceStatus}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {faculty.assetTag ?? "—"}
-                  </p>
-
-                  <Link
-                    href={`/faculty/${faculty.facultyId}`}
-                    className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                return (
+                  <article
+                    key={member.id}
+                    className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1.1fr_1fr_1fr_1.3fr_0.9fr_0.9fr_auto] lg:items-center"
                   >
-                    Open Profile
-                  </Link>
-                </article>
-              ))}
+                    <p className="font-medium text-white">
+                      {member.name}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {member.id}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {member.department}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {member.email}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {assignedDevice ? "Assigned" : "Not Assigned"}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {assignedDevice?.assetTag ?? "—"}
+                    </p>
+
+                    <Link
+                      href={`/faculty/${member.id}`}
+                      className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                    >
+                      Open Profile
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
           </section>
         </div>

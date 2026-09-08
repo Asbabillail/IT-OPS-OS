@@ -22,6 +22,17 @@ export const devices: readonly Device[] = [
     warrantyStatus: "Active",
     appleCareStatus: "Active",
   },
+  {
+    serial: "FACDMQ521",
+    assetTag: "YIS-PAD-0521",
+    model: "iPad",
+    storage: "256 GB",
+    status: "Assigned",
+    purchaseDate: "2026-01-15",
+    warrantyStatus: "Active",
+    appleCareStatus: "Active",
+    assignedFacultyId: "FAC-2026-012",
+  },
 ];
 
 export function getDeviceBySerial(

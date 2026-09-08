@@ -1,6 +1,10 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  devices,
+  getStudentById,
+} from "@/data/domain";
 
 type StudentProfilePageProps = {
   params: Promise<{
@@ -8,47 +12,12 @@ type StudentProfilePageProps = {
   }>;
 };
 
-const syntheticStudents = {
-  "STU-2026-041": {
-    studentId: "STU-2026-041",
-    name: "Ayaan Rahman",
-    grade: "10A",
-    email: "ayaan.rahman@yis.edu.sa",
-    guardian: "Imran Rahman",
-    guardianPhone: "+966 50 123 4567",
-    enrollmentStatus: "Active",
-    device: {
-      serial: "DMQR92KX",
-      assetTag: "YIS-PAD-0412",
-      model: "iPad",
-      status: "Assigned",
-    },
-  },
-    "STU-2026-089": {
-    studentId: "STU-2026-089",
-    name: "Sara Khan",
-    grade: "8B",
-    email: "sara.khan@yis.edu.sa",
-    guardian: "Ahmed Khan",
-    guardianPhone: "+966 50 987 6543",
-    enrollmentStatus: "Active",
-    device: {
-      serial: "—",
-      assetTag: "—",
-      model: "—",
-      status: "Not Assigned",
-    },
-  },
-} as const;
-
-
 export default async function StudentProfilePage({
   params,
 }: StudentProfilePageProps) {
   const { studentId } = await params;
 
-  const student =
-    syntheticStudents[studentId as keyof typeof syntheticStudents];
+  const student = getStudentById(studentId);
 
   if (!student) {
     return (
@@ -70,16 +39,20 @@ export default async function StudentProfilePage({
             </p>
 
             <Link
-              href="/"
+              href="/students"
               className="mt-6 inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-900"
             >
-              Return to Dashboard
+              Return to Students
             </Link>
           </div>
         </section>
       </main>
     );
   }
+
+  const assignedDevice = devices.find(
+    (device) => device.assignedStudentId === student.id,
+  );
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -98,73 +71,69 @@ export default async function StudentProfilePage({
               </h1>
 
               <p className="mt-2 text-sm text-slate-400">
-                {student.studentId} · Grade {student.grade}
+                {student.id} · Grade {student.grade}
               </p>
             </div>
 
             <Link
-              href="/"
+              href="/students"
               className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-900"
             >
-              Back to Dashboard
+              Back to Students
             </Link>
           </header>
 
           <section
-            aria-labelledby="student-timeline"
-            className="mt-8 pb-8"
+            aria-labelledby="student-details"
+            className="mt-8"
           >
             <h2
-              id="student-timeline"
+              id="student-details"
               className="text-lg font-semibold"
             >
-              Timeline
+              Student Details
             </h2>
 
-            <div className="mt-4 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
-              <div className="border-b border-slate-800 px-5 py-4">
-                <p className="font-medium">
-                  Student record created
+            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-500">
+                  Student ID
                 </p>
 
-                <p className="mt-1 text-sm text-slate-500">
-                  Synthetic enrollment intake completed
+                <p className="mt-2 font-medium">
+                  {student.id}
                 </p>
-             </div>
+              </article>
 
-             {student.device.status === "Assigned" ? (
-               <>
-                 <div className="border-b border-slate-800 px-5 py-4">
-                   <p className="font-medium">
-                     Device assigned
-                   </p>
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-500">
+                  Grade
+                </p>
 
-                   <p className="mt-1 text-sm text-slate-500">
-                     {student.device.assetTag} · {student.device.serial}
-                  </p>
-                 </div>
+                <p className="mt-2 font-medium">
+                  {student.grade}
+                </p>
+              </article>
 
-                 <div className="px-5 py-4">
-                   <p className="font-medium">
-                     Distribution form verified
-                   </p>
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-500">
+                  School Email
+                </p>
 
-                   <p className="mt-1 text-sm text-slate-500">
-                     Physical document verification recorded by IT
-                   </p>
-                 </div>
-                </>
-              ) : (
-                <div className="px-5 py-4">
-                  <p className="font-medium">
-                    Awaiting device assignment
-                  </p>
+                <p className="mt-2 font-medium">
+                  {student.email}
+                </p>
+              </article>
 
-                  <p className="mt-1 text-sm text-slate-500">
-                    No active device assignment exists
-                  </p>
-                </div>
-              )}
+              <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+                <p className="text-sm text-slate-500">
+                  Enrollment
+                </p>
+
+                <p className="mt-2 font-medium">
+                  {student.enrollmentStatus}
+                </p>
+              </article>
             </div>
           </section>
 
@@ -181,11 +150,11 @@ export default async function StudentProfilePage({
 
             <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-5">
               <p className="font-medium">
-                {student.guardian}
+                {student.guardian.name}
               </p>
 
               <p className="mt-1 text-sm text-slate-500">
-                {student.guardianPhone}
+                {student.guardian.phone}
               </p>
             </div>
           </section>
@@ -206,8 +175,9 @@ export default async function StudentProfilePage({
                 <p className="text-sm text-slate-500">
                   Serial Number
                 </p>
+
                 <p className="mt-2 font-medium">
-                  {student.device.serial}
+                  {assignedDevice?.serial ?? "—"}
                 </p>
               </article>
 
@@ -215,8 +185,9 @@ export default async function StudentProfilePage({
                 <p className="text-sm text-slate-500">
                   Asset Tag
                 </p>
+
                 <p className="mt-2 font-medium">
-                  {student.device.assetTag}
+                  {assignedDevice?.assetTag ?? "—"}
                 </p>
               </article>
 
@@ -224,8 +195,9 @@ export default async function StudentProfilePage({
                 <p className="text-sm text-slate-500">
                   Model
                 </p>
+
                 <p className="mt-2 font-medium">
-                  {student.device.model}
+                  {assignedDevice?.model ?? "—"}
                 </p>
               </article>
 
@@ -233,11 +205,21 @@ export default async function StudentProfilePage({
                 <p className="text-sm text-slate-500">
                   Status
                 </p>
+
                 <p className="mt-2 font-medium">
-                  {student.device.status}
+                  {assignedDevice?.status ?? "Not Assigned"}
                 </p>
               </article>
             </div>
+
+            {assignedDevice ? (
+              <Link
+                href={`/devices/${assignedDevice.serial}`}
+                className="mt-4 inline-flex text-sm font-medium text-slate-300 underline decoration-slate-600 underline-offset-4 transition hover:text-white"
+              >
+                Open Device Profile
+              </Link>
+            ) : null}
           </section>
 
           <section
@@ -256,28 +238,45 @@ export default async function StudentProfilePage({
                 <p className="font-medium">
                   Student record created
                 </p>
+
                 <p className="mt-1 text-sm text-slate-500">
                   Synthetic enrollment intake completed
                 </p>
               </div>
 
-              <div className="border-b border-slate-800 px-5 py-4">
-                <p className="font-medium">
-                  Device assigned
-                </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  YIS-PAD-0412 · DMQR92KX
-                </p>
-              </div>
+              {assignedDevice ? (
+                <>
+                  <div className="border-b border-slate-800 px-5 py-4">
+                    <p className="font-medium">
+                      Device assigned
+                    </p>
 
-              <div className="px-5 py-4">
-                <p className="font-medium">
-                  Distribution form verified
-                </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  Physical document verification recorded by IT
-                </p>
-              </div>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {assignedDevice.assetTag} · {assignedDevice.serial}
+                    </p>
+                  </div>
+
+                  <div className="px-5 py-4">
+                    <p className="font-medium">
+                      Distribution form verified
+                    </p>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                      Physical document verification recorded by IT
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="px-5 py-4">
+                  <p className="font-medium">
+                    Awaiting device assignment
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    No active device assignment exists
+                  </p>
+                </div>
+              )}
             </div>
           </section>
         </div>

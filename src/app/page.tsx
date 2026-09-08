@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { GlobalSearch } from "@/components/global-search";
 
 export default function Home() {
   return (
@@ -22,21 +23,10 @@ export default function Home() {
           </header>
 
           <div className="mt-8">
-            <label
-              htmlFor="global-search"
-              className="mb-2 block text-sm font-medium text-slate-300"
-            >
-              Global Search
-            </label>
+            <GlobalSearch />
+          </div>
 
-            <input
-              id="global-search"
-              name="global-search"
-              type="search"
-              placeholder="Search student, faculty, ID, email, serial number, or asset tag..."
-              className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-slate-600"
-            />
-                      <section
+          <section
             aria-labelledby="operational-overview"
             className="mt-8"
           >
@@ -91,7 +81,8 @@ export default function Home() {
               </article>
             </div>
           </section>
-                    <section
+
+          <section
             aria-labelledby="action-required"
             className="mt-8"
           >
@@ -155,7 +146,8 @@ export default function Home() {
               </div>
             </div>
           </section>
-                    <section
+
+          <section
             aria-labelledby="recent-activity"
             className="mt-8 pb-8"
           >
@@ -201,7 +193,6 @@ export default function Home() {
               </div>
             </div>
           </section>
-          </div>
         </div>
       </section>
     </main>

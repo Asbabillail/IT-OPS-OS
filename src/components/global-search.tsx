@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { searchRecords } from "@/data/search-records";
@@ -54,15 +55,20 @@ export function GlobalSearch() {
               {results.map((record) => (
                 <li
                   key={record.id}
-                  className="border-b border-slate-800 px-4 py-3 last:border-b-0"
+                  className="border-b border-slate-800 last:border-b-0"
                 >
-                  <p className="font-medium text-white">
-                    {record.title}
-                  </p>
+                  <Link
+                    href={record.href}
+                    className="block px-4 py-3 transition hover:bg-slate-800/60"
+                  >
+                    <p className="font-medium text-white">
+                      {record.title}
+                    </p>
 
-                  <p className="mt-1 text-sm text-slate-500">
-                    {record.subtitle}
-                  </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {record.subtitle}
+                    </p>
+                  </Link>
                 </li>
               ))}
             </ul>

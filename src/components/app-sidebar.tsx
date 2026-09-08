@@ -51,7 +51,7 @@ const navigationItems: NavigationItem[] = [
   },
   {
     label: "Releases",
-    href: null,
+    href: "/releases",
   },
   {
     label: "Documents",

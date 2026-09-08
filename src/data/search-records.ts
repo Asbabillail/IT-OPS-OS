@@ -47,6 +47,18 @@ export const searchRecords: SearchRecord[] = [
     href: "/faculty/FAC-2026-012",
   },
   {
+    id: "faculty-fac-2026-019",
+    type: "faculty",
+    title: "Omar Siddiqui",
+    subtitle: "Faculty · Science",
+    identifiers: [
+      "FAC-2026-019",
+      "omar.siddiqui@yis.edu.sa",
+      "Omar Siddiqui",
+    ],
+    href: "/faculty/FAC-2026-019",
+  },
+  {
     id: "device-dmqr92kx",
     type: "device",
     title: "iPad DMQR92KX",

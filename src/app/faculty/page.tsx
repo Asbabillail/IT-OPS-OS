@@ -39,7 +39,7 @@ export default function FacultyPage() {
               </h1>
 
               <p className="mt-2 text-sm text-slate-400">
-                Browse faculty records and monitor operational device assignment state.
+                Browse faculty records and open their 360° operational profiles.
               </p>
             </div>
 
@@ -69,75 +69,51 @@ export default function FacultyPage() {
             </div>
 
             <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
-              <div className="hidden grid-cols-[1.2fr_1fr_1fr_1.4fr_0.9fr_0.9fr] gap-4 border-b border-slate-800 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 lg:grid">
+              <div className="hidden grid-cols-[1.1fr_1fr_1fr_1.3fr_0.9fr_0.9fr_auto] gap-4 border-b border-slate-800 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 lg:grid">
                 <span>Faculty</span>
                 <span>Faculty ID</span>
                 <span>Department</span>
                 <span>Email</span>
                 <span>Device</span>
                 <span>Asset Tag</span>
+                <span>Profile</span>
               </div>
 
               {syntheticFaculty.map((faculty) => (
                 <article
                   key={faculty.facultyId}
-                  className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1.2fr_1fr_1fr_1.4fr_0.9fr_0.9fr] lg:items-center"
+                  className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1.1fr_1fr_1fr_1.3fr_0.9fr_0.9fr_auto] lg:items-center"
                 >
-                  <div>
-                    <p className="font-medium text-white">
-                      {faculty.name}
-                    </p>
-                  </div>
+                  <p className="font-medium text-white">
+                    {faculty.name}
+                  </p>
 
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 lg:hidden">
-                      Faculty ID
-                    </p>
+                  <p className="text-sm text-slate-300">
+                    {faculty.facultyId}
+                  </p>
 
-                    <p className="mt-1 text-sm text-slate-300 lg:mt-0">
-                      {faculty.facultyId}
-                    </p>
-                  </div>
+                  <p className="text-sm text-slate-300">
+                    {faculty.department}
+                  </p>
 
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 lg:hidden">
-                      Department
-                    </p>
+                  <p className="text-sm text-slate-300">
+                    {faculty.email}
+                  </p>
 
-                    <p className="mt-1 text-sm text-slate-300 lg:mt-0">
-                      {faculty.department}
-                    </p>
-                  </div>
+                  <p className="text-sm text-slate-300">
+                    {faculty.deviceStatus}
+                  </p>
 
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 lg:hidden">
-                      Email
-                    </p>
+                  <p className="text-sm text-slate-300">
+                    {faculty.assetTag ?? "—"}
+                  </p>
 
-                    <p className="mt-1 text-sm text-slate-300 lg:mt-0">
-                      {faculty.email}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 lg:hidden">
-                      Device
-                    </p>
-
-                    <p className="mt-1 text-sm text-slate-300 lg:mt-0">
-                      {faculty.deviceStatus}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 lg:hidden">
-                      Asset Tag
-                    </p>
-
-                    <p className="mt-1 text-sm text-slate-300 lg:mt-0">
-                      {faculty.assetTag ?? "—"}
-                    </p>
-                  </div>
+                  <Link
+                    href={`/faculty/${faculty.facultyId}`}
+                    className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                  >
+                    Open Profile
+                  </Link>
                 </article>
               ))}
             </div>

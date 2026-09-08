@@ -43,7 +43,7 @@ export function GlobalSearch() {
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search student, faculty, ID, email, serial number, or asset tag..."
+        placeholder="Search people, IDs, emails, serials, asset tags, or workflows..."
         autoComplete="off"
         className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-slate-600"
       />
@@ -61,9 +61,15 @@ export function GlobalSearch() {
                     href={record.href}
                     className="block px-4 py-3 transition hover:bg-slate-800/60"
                   >
-                    <p className="font-medium text-white">
-                      {record.title}
-                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-medium text-white">
+                        {record.title}
+                      </p>
+
+                      <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        {record.type}
+                      </span>
+                    </div>
 
                     <p className="mt-1 text-sm text-slate-500">
                       {record.subtitle}

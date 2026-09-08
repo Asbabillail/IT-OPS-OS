@@ -1,29 +1,21 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  byodRecords,
+  getFacultyById,
+  getStudentById,
+} from "@/data/domain";
 
-const syntheticByodRecords = [
-  {
-    id: "BYOD-2026-001",
-    ownerName: "Sara Khan",
-    ownerId: "STU-2026-089",
-    device: "iPad Air",
-    serial: "BYOD-SK-001",
-    ownership: "Student Owned",
-    enrollmentStatus: "Enrolled",
-    complianceStatus: "Compliant",
-  },
-  {
-    id: "BYOD-2026-002",
-    ownerName: "Omar Siddiqui",
-    ownerId: "FAC-2026-019",
-    device: "iPad Pro",
-    serial: "BYOD-OS-002",
-    ownership: "Faculty Owned",
-    enrollmentStatus: "Pending",
-    complianceStatus: "Review Required",
-  },
-] as const;
+function getOwnerName(
+  record: (typeof byodRecords)[number],
+): string {
+  if (record.owner.type === "Student") {
+    return getStudentById(record.owner.id)?.name ?? "Unknown Student";
+  }
+
+  return getFacultyById(record.owner.id)?.name ?? "Unknown Faculty";
+}
 
 export default function ByodPage() {
   return (
@@ -42,7 +34,8 @@ export default function ByodPage() {
             </h1>
 
             <p className="mt-2 text-sm text-slate-400">
-              Track privately owned devices, enrollment state, and compliance review.
+              Track privately owned devices, enrollment state, and
+              compliance review.
             </p>
           </header>
 
@@ -68,49 +61,53 @@ export default function ByodPage() {
                 <span>Record</span>
               </div>
 
-              {syntheticByodRecords.map((record) => (
-                <article
-                  key={record.id}
-                  className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1fr_1fr_auto] lg:items-center"
-                >
-                  <p className="text-sm text-slate-300">
-                    {record.id}
-                  </p>
+              {byodRecords.map((record) => {
+                const ownerName = getOwnerName(record);
 
-                  <div>
-                    <p className="font-medium text-white">
-                      {record.ownerName}
-                    </p>
-
-                    <p className="mt-1 text-xs text-slate-500">
-                      {record.ownerId}
-                    </p>
-                  </div>
-
-                  <p className="text-sm text-slate-300">
-                    {record.device}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {record.serial}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {record.enrollmentStatus}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {record.complianceStatus}
-                  </p>
-
-                  <Link
-                    href={`/byod/${record.id}`}
-                    className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                return (
+                  <article
+                    key={record.id}
+                    className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1fr_1fr_auto] lg:items-center"
                   >
-                    Open Record
-                  </Link>
-                </article>
-              ))}
+                    <p className="text-sm text-slate-300">
+                      {record.id}
+                    </p>
+
+                    <div>
+                      <p className="font-medium text-white">
+                        {ownerName}
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-500">
+                        {record.owner.id}
+                      </p>
+                    </div>
+
+                    <p className="text-sm text-slate-300">
+                      {record.deviceModel}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {record.serial}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {record.enrollmentStatus}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {record.complianceStatus}
+                    </p>
+
+                    <Link
+                      href={`/byod/${record.id}`}
+                      className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                    >
+                      Open Record
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
           </section>
         </div>

@@ -124,3 +124,23 @@ export type DistributionRecord = {
   returnedDate: string | null;
   verifiedDate: string | null;
 };
+export type ByodRecord = {
+  id: ByodId;
+  owner:
+    | {
+        type: "Student";
+        id: StudentId;
+      }
+    | {
+        type: "Faculty";
+        id: FacultyId;
+      };
+  deviceModel: string;
+  serial: string;
+  ownership: "Student Owned" | "Faculty Owned";
+  enrollmentStatus: "Enrolled" | "Pending";
+  complianceStatus: "Compliant" | "Review Required";
+  registeredDate: string;
+  enrolledDate: string | null;
+  reviewedDate: string | null;
+};

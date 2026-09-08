@@ -1,6 +1,11 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  getByodRecordById,
+  getFacultyById,
+  getStudentById,
+} from "@/data/domain";
 
 type ByodDetailPageProps = {
   params: Promise<{
@@ -8,57 +13,12 @@ type ByodDetailPageProps = {
   }>;
 };
 
-const syntheticByodRecords = {
-  "BYOD-2026-001": {
-    id: "BYOD-2026-001",
-    owner: {
-      name: "Sara Khan",
-      id: "STU-2026-089",
-      type: "Student",
-      href: "/students/STU-2026-089",
-    },
-    device: {
-      model: "iPad Air",
-      serial: "BYOD-SK-001",
-      ownership: "Student Owned",
-    },
-    enrollmentStatus: "Enrolled",
-    complianceStatus: "Compliant",
-    registeredDate: "2026-09-01",
-    enrolledDate: "2026-09-02",
-    reviewedDate: "2026-09-02",
-  },
-
-  "BYOD-2026-002": {
-    id: "BYOD-2026-002",
-    owner: {
-      name: "Omar Siddiqui",
-      id: "FAC-2026-019",
-      type: "Faculty",
-      href: "/faculty/FAC-2026-019",
-    },
-    device: {
-      model: "iPad Pro",
-      serial: "BYOD-OS-002",
-      ownership: "Faculty Owned",
-    },
-    enrollmentStatus: "Pending",
-    complianceStatus: "Review Required",
-    registeredDate: "2026-09-08",
-    enrolledDate: null,
-    reviewedDate: null,
-  },
-} as const;
-
 export default async function ByodDetailPage({
   params,
 }: ByodDetailPageProps) {
   const { byodId } = await params;
 
-  const record =
-    syntheticByodRecords[
-      byodId as keyof typeof syntheticByodRecords
-    ];
+  const record = getByodRecordById(byodId);
 
   if (!record) {
     return (
@@ -91,6 +51,48 @@ export default async function ByodDetailPage({
     );
   }
 
+  const owner =
+    record.owner.type === "Student"
+      ? getStudentById(record.owner.id)
+      : getFacultyById(record.owner.id);
+
+  if (!owner) {
+    return (
+      <main className="flex min-h-screen bg-slate-950 text-white">
+        <AppSidebar />
+
+        <section className="flex-1 px-8 py-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-sm font-medium text-slate-500">
+              BYOD Record
+            </p>
+
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              Linked owner unavailable
+            </h1>
+
+            <p className="mt-3 text-sm text-slate-400">
+              The BYOD record exists, but its linked owner could not
+              be resolved.
+            </p>
+
+            <Link
+              href="/byod"
+              className="mt-6 inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-900"
+            >
+              Return to BYOD
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const ownerHref =
+    record.owner.type === "Student"
+      ? `/students/${record.owner.id}`
+      : `/faculty/${record.owner.id}`;
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -108,7 +110,8 @@ export default async function ByodDetailPage({
               </h1>
 
               <p className="mt-2 text-sm text-slate-400">
-                Privately owned device enrollment and compliance lifecycle
+                Privately owned device enrollment and compliance
+                lifecycle
               </p>
             </div>
 
@@ -132,10 +135,10 @@ export default async function ByodDetailPage({
                 </p>
 
                 <Link
-                  href={record.owner.href}
+                  href={ownerHref}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {record.owner.name}
+                  {owner.name}
                 </Link>
               </article>
 
@@ -145,7 +148,7 @@ export default async function ByodDetailPage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {record.device.ownership}
+                  {record.ownership}
                 </p>
               </article>
 
@@ -183,7 +186,7 @@ export default async function ByodDetailPage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {record.device.model}
+                  {record.deviceModel}
                 </p>
               </article>
 
@@ -193,7 +196,7 @@ export default async function ByodDetailPage({
                 </p>
 
                 <p className="mt-2 font-medium">
-                  {record.device.serial}
+                  {record.serial}
                 </p>
               </article>
 

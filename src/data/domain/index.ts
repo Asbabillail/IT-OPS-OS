@@ -2,6 +2,7 @@ export type {
   AppleCareClaim,
   AppleCareClaimId,
   ByodId,
+  ByodRecord,
   Device,
   DeviceStatus,
   DistributionId,
@@ -58,3 +59,8 @@ export {
   distributions,
   getDistributionById,
 } from "./distributions";
+
+export {
+  byodRecords,
+  getByodRecordById,
+} from "./byod";

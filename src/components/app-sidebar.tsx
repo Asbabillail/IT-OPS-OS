@@ -35,7 +35,7 @@ const navigationItems: NavigationItem[] = [
   },
   {
     label: "BYOD",
-    href: null,
+    href: "/byod",
   },
   {
     label: "Repairs",

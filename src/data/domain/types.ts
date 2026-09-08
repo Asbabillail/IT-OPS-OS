@@ -114,3 +114,13 @@ export type AppleCareClaim = {
   submittedDate: string | null;
   decisionDate: string | null;
 };
+export type DistributionRecord = {
+  id: DistributionId;
+  studentId: StudentId;
+  deviceSerial: string;
+  status: "Verified" | "Pending Signature";
+  signatureStatus: "Verified" | "Awaiting Paper Return";
+  handoverDate: string;
+  returnedDate: string | null;
+  verifiedDate: string | null;
+};

@@ -5,6 +5,7 @@ export type {
   Device,
   DeviceStatus,
   DistributionId,
+  DistributionRecord,
   Faculty,
   FacultyId,
   ReleaseId,
@@ -53,3 +54,7 @@ export {
   appleCareClaims,
   getAppleCareClaimById,
 } from "./applecare";
+export {
+  distributions,
+  getDistributionById,
+} from "./distributions";

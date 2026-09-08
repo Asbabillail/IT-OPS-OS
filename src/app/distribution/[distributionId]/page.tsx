@@ -1,6 +1,11 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {
+  getDeviceBySerial,
+  getDistributionById,
+  getStudentById,
+} from "@/data/domain";
 
 type DistributionProfilePageProps = {
   params: Promise<{
@@ -8,55 +13,13 @@ type DistributionProfilePageProps = {
   }>;
 };
 
-const syntheticDistributions = {
-  "DIST-2026-001": {
-    id: "DIST-2026-001",
-    student: {
-      name: "Ayaan Rahman",
-      studentId: "STU-2026-041",
-      href: "/students/STU-2026-041",
-    },
-    device: {
-      assetTag: "YIS-PAD-0412",
-      serial: "DMQR92KX",
-      href: "/devices/DMQR92KX",
-    },
-    status: "Verified",
-    signatureStatus: "Verified",
-    handoverDate: "2026-08-25",
-    returnedDate: "2026-08-26",
-    verifiedDate: "2026-08-26",
-  },
-
-  "DIST-2026-002": {
-    id: "DIST-2026-002",
-    student: {
-      name: "Sara Khan",
-      studentId: "STU-2026-089",
-      href: "/students/STU-2026-089",
-    },
-    device: {
-      assetTag: "YIS-PAD-0413",
-      serial: "F9FT81LP",
-      href: "/devices/F9FT81LP",
-    },
-    status: "Pending Signature",
-    signatureStatus: "Awaiting Paper Return",
-    handoverDate: "2026-09-08",
-    returnedDate: null,
-    verifiedDate: null,
-  },
-} as const;
-
 export default async function DistributionProfilePage({
   params,
 }: DistributionProfilePageProps) {
   const { distributionId } = await params;
 
   const distribution =
-    syntheticDistributions[
-      distributionId as keyof typeof syntheticDistributions
-    ];
+    getDistributionById(distributionId);
 
   if (!distribution) {
     return (
@@ -75,6 +38,41 @@ export default async function DistributionProfilePage({
 
             <p className="mt-3 text-sm text-slate-400">
               No synthetic distribution exists for {distributionId}.
+            </p>
+
+            <Link
+              href="/distribution"
+              className="mt-6 inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-900"
+            >
+              Return to Distribution
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const student = getStudentById(distribution.studentId);
+  const device = getDeviceBySerial(distribution.deviceSerial);
+
+  if (!student || !device) {
+    return (
+      <main className="flex min-h-screen bg-slate-950 text-white">
+        <AppSidebar />
+
+        <section className="flex-1 px-8 py-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-sm font-medium text-slate-500">
+              Distribution Workflow
+            </p>
+
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              Linked record unavailable
+            </h1>
+
+            <p className="mt-3 text-sm text-slate-400">
+              The distribution exists, but its linked student or
+              device record could not be resolved.
             </p>
 
             <Link
@@ -150,10 +148,10 @@ export default async function DistributionProfilePage({
                 </p>
 
                 <Link
-                  href={distribution.student.href}
+                  href={`/students/${student.id}`}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {distribution.student.name}
+                  {student.name}
                 </Link>
               </article>
 
@@ -163,10 +161,10 @@ export default async function DistributionProfilePage({
                 </p>
 
                 <Link
-                  href={distribution.device.href}
+                  href={`/devices/${device.serial}`}
                   className="mt-2 inline-flex font-medium underline decoration-slate-600 underline-offset-4"
                 >
-                  {distribution.device.assetTag}
+                  {device.assetTag}
                 </Link>
               </article>
             </div>
@@ -184,8 +182,7 @@ export default async function DistributionProfilePage({
                 </p>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  {distribution.student.name} linked to{" "}
-                  {distribution.device.assetTag}
+                  {student.name} linked to {device.assetTag}
                 </p>
               </div>
 
@@ -238,7 +235,8 @@ export default async function DistributionProfilePage({
                   </p>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Verification cannot complete until the signed document returns
+                    Verification cannot complete until the signed
+                    document returns
                   </p>
                 </div>
               )}

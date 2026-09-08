@@ -1,27 +1,11 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-
-const syntheticDistributions = [
-  {
-    id: "DIST-2026-001",
-    studentName: "Ayaan Rahman",
-    studentId: "STU-2026-041",
-    assetTag: "YIS-PAD-0412",
-    serial: "DMQR92KX",
-    status: "Verified",
-    signatureStatus: "Verified",
-  },
-  {
-    id: "DIST-2026-002",
-    studentName: "Sara Khan",
-    studentId: "STU-2026-089",
-    assetTag: "YIS-PAD-0413",
-    serial: "F9FT81LP",
-    status: "Pending Signature",
-    signatureStatus: "Awaiting Paper Return",
-  },
-] as const;
+import {
+  distributions,
+  getDeviceBySerial,
+  getStudentById,
+} from "@/data/domain";
 
 export default function DistributionPage() {
   return (
@@ -40,7 +24,8 @@ export default function DistributionPage() {
             </h1>
 
             <p className="mt-2 text-sm text-slate-400">
-              Track device handover, physical signatures, and IT verification.
+              Track device handover, physical signatures, and IT
+              verification.
             </p>
           </header>
 
@@ -66,43 +51,57 @@ export default function DistributionPage() {
                 <span>Workflow</span>
               </div>
 
-              {syntheticDistributions.map((distribution) => (
-                <article
-                  key={distribution.id}
-                  className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1fr_1.2fr_auto] lg:items-center"
-                >
-                  <p className="text-sm text-slate-300">
-                    {distribution.id}
-                  </p>
+              {distributions.map((distribution) => {
+                const student = getStudentById(
+                  distribution.studentId,
+                );
 
-                  <p className="font-medium text-white">
-                    {distribution.studentName}
-                  </p>
+                const device = getDeviceBySerial(
+                  distribution.deviceSerial,
+                );
 
-                  <p className="text-sm text-slate-300">
-                    {distribution.studentId}
-                  </p>
+                if (!student || !device) {
+                  return null;
+                }
 
-                  <p className="text-sm text-slate-300">
-                    {distribution.assetTag}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {distribution.status}
-                  </p>
-
-                  <p className="text-sm text-slate-300">
-                    {distribution.signatureStatus}
-                  </p>
-
-                  <Link
-                    href={`/distribution/${distribution.id}`}
-                    className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                return (
+                  <article
+                    key={distribution.id}
+                    className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1fr_1.2fr_auto] lg:items-center"
                   >
-                    Open Workflow
-                  </Link>
-                </article>
-              ))}
+                    <p className="text-sm text-slate-300">
+                      {distribution.id}
+                    </p>
+
+                    <p className="font-medium text-white">
+                      {student.name}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {student.id}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {device.assetTag}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {distribution.status}
+                    </p>
+
+                    <p className="text-sm text-slate-300">
+                      {distribution.signatureStatus}
+                    </p>
+
+                    <Link
+                      href={`/distribution/${distribution.id}`}
+                      className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                    >
+                      Open Workflow
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
           </section>
         </div>

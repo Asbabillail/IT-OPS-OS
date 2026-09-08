@@ -47,7 +47,7 @@ const navigationItems: NavigationItem[] = [
   },
   {
     label: "Returns",
-    href: null,
+    href: "/returns",
   },
   {
     label: "Releases",

@@ -55,15 +55,15 @@ const navigationItems: NavigationItem[] = [
   },
   {
     label: "Documents",
-    href: null,
+    href: "/documents",
   },
   {
     label: "Reports",
-    href: null,
+    href: "/reports",
   },
   {
     label: "Administration",
-    href: null,
+    href: "/administration",
   },
 ];
 

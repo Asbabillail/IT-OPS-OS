@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  devices,
-  students,
-} from "@/data/domain";
+import { listStudentDirectory } from "@/lib/repositories/students";
 
-export default function StudentsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function StudentsPage() {
+  const directory = await listStudentDirectory();
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -50,7 +51,7 @@ export default function StudentsPage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 development data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -64,13 +65,19 @@ export default function StudentsPage() {
                 <span>Profile</span>
               </div>
 
-              {students.map((student) => {
-                const assignedDevice = devices.find(
-                  (device) =>
-                    device.assignedStudentId === student.id,
-                );
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No student records found
+                  </p>
 
-                return (
+                  <p className="mt-1 text-sm text-slate-500">
+                    Student records will appear here once they are added to
+                    Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(({ student, activeAssetTags }) => (
                   <article
                     key={student.id}
                     className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1.2fr_1fr_0.6fr_0.8fr_0.8fr_auto] lg:items-center"
@@ -111,7 +118,9 @@ export default function StudentsPage() {
                       </p>
 
                       <p className="mt-1 text-sm text-slate-300 lg:mt-0">
-                        {assignedDevice ? "Assigned" : "Not Assigned"}
+                        {activeAssetTags.length > 0
+                          ? "Assigned"
+                          : "Not Assigned"}
                       </p>
                     </div>
 
@@ -121,7 +130,9 @@ export default function StudentsPage() {
                       </p>
 
                       <p className="mt-1 text-sm text-slate-300 lg:mt-0">
-                        {assignedDevice?.assetTag ?? "—"}
+                        {activeAssetTags.length > 0
+                          ? activeAssetTags.join(", ")
+                          : "—"}
                       </p>
                     </div>
 
@@ -132,8 +143,8 @@ export default function StudentsPage() {
                       Open Profile
                     </Link>
                   </article>
-                );
-              })}
+                ))
+              )}
             </div>
           </section>
         </div>

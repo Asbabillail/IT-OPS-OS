@@ -20,11 +20,11 @@ export function getSupabaseServerClient(): SupabaseClient {
   }
 
   const url = requireServerEnvironmentVariable("SUPABASE_URL");
-  const serviceRoleKey = requireServerEnvironmentVariable(
-    "SUPABASE_SERVICE_ROLE_KEY",
+  const secretKey = requireServerEnvironmentVariable(
+    "SUPABASE_SECRET_KEY",
   );
 
-  serverClient = createClient(url, serviceRoleKey, {
+  serverClient = createClient(url, secretKey, {
     auth: {
       autoRefreshToken: false,
       detectSessionInUrl: false,

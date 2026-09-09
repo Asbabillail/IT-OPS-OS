@@ -1,28 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  devices,
-  getFacultyById,
-  getStudentById,
-} from "@/data/domain";
+import { listDeviceDirectory } from "@/lib/repositories/devices";
 
-function getAssignedToLabel(
-  assignedStudentId?: string,
-  assignedFacultyId?: string,
-): string {
-  if (assignedStudentId) {
-    return getStudentById(assignedStudentId)?.name ?? "Unknown Student";
-  }
+export const dynamic = "force-dynamic";
 
-  if (assignedFacultyId) {
-    return getFacultyById(assignedFacultyId)?.name ?? "Unknown Faculty";
-  }
+export default async function DevicesPage() {
+  const directory = await listDeviceDirectory();
 
-  return "—";
-}
-
-export default function DevicesPage() {
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -40,8 +25,8 @@ export default function DevicesPage() {
               </h1>
 
               <p className="mt-2 text-sm text-slate-400">
-                Browse the synthetic Phase 1 device fleet and open
-                Device 360° profiles.
+                Browse the live Phase 1 device fleet and open Device 360°
+                profiles.
               </p>
             </div>
 
@@ -66,7 +51,7 @@ export default function DevicesPage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 development data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -81,13 +66,19 @@ export default function DevicesPage() {
                 <span>Profile</span>
               </div>
 
-              {devices.map((device) => {
-                const assignedTo = getAssignedToLabel(
-                  device.assignedStudentId,
-                  device.assignedFacultyId,
-                );
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No device records found
+                  </p>
 
-                return (
+                  <p className="mt-1 text-sm text-slate-500">
+                    Device records will appear here once they are added to
+                    Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(({ device, assignedTo }) => (
                   <article
                     key={device.serial}
                     className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1fr_0.8fr_0.8fr_0.9fr_1fr_auto] lg:items-center"
@@ -148,7 +139,7 @@ export default function DevicesPage() {
                       </p>
 
                       <p className="mt-1 text-sm text-slate-300 lg:mt-0">
-                        {assignedTo}
+                        {assignedTo ?? "—"}
                       </p>
                     </div>
 
@@ -159,8 +150,8 @@ export default function DevicesPage() {
                       Open Profile
                     </Link>
                   </article>
-                );
-              })}
+                ))
+              )}
             </div>
           </section>
         </div>

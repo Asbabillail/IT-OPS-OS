@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  devices,
-  faculty,
-} from "@/data/domain";
+import { listFacultyDirectory } from "@/lib/repositories/faculty";
 
-export default function FacultyPage() {
+export const dynamic = "force-dynamic";
+
+export default async function FacultyPage() {
+  const directory = await listFacultyDirectory();
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -50,7 +51,7 @@ export default function FacultyPage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 development data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -65,50 +66,60 @@ export default function FacultyPage() {
                 <span>Profile</span>
               </div>
 
-              {faculty.map((member) => {
-                const assignedDevice = devices.find(
-                  (device) =>
-                    device.assignedFacultyId === member.id,
-                );
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No faculty records found
+                  </p>
 
-                return (
+                  <p className="mt-1 text-sm text-slate-500">
+                    Faculty records will appear here once they are added to
+                    Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(({ faculty, activeAssetTags }) => (
                   <article
-                    key={member.id}
+                    key={faculty.id}
                     className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1.1fr_1fr_1fr_1.3fr_0.9fr_0.9fr_auto] lg:items-center"
                   >
                     <p className="font-medium text-white">
-                      {member.name}
+                      {faculty.name}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {member.id}
+                      {faculty.id}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {member.department}
+                      {faculty.department}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {member.email}
+                      {faculty.email}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {assignedDevice ? "Assigned" : "Not Assigned"}
+                      {activeAssetTags.length > 0
+                        ? "Assigned"
+                        : "Not Assigned"}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {assignedDevice?.assetTag ?? "—"}
+                      {activeAssetTags.length > 0
+                        ? activeAssetTags.join(", ")
+                        : "—"}
                     </p>
 
                     <Link
-                      href={`/faculty/${member.id}`}
+                      href={`/faculty/${faculty.id}`}
                       className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
                     >
                       Open Profile
                     </Link>
                   </article>
-                );
-              })}
+                ))
+              )}
             </div>
           </section>
         </div>

@@ -373,3 +373,138 @@ export async function getReleaseById(
     resultingDeviceState: row.resulting_device_state,
   };
 }
+
+export async function createRelease(
+  deviceSerial: string,
+  sourceType: "Return" | "Repair",
+  sourceId: string,
+): Promise<ReleaseRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const sourceIdField = sourceType === "Return" ? "return_id" : "repair_id";
+
+  const insertData: Record<string, unknown> = {
+    source_type: sourceType,
+    [sourceIdField]: sourceId,
+    eligibility: "Eligible",
+    action: "None",
+    status: "Awaiting Repair Completion",
+    validation: "Repair workflow incomplete",
+    release_date: null,
+    resulting_device_state: null,
+  };
+
+  const { data: releaseData, error: releaseError } = await supabase
+    .from("releases")
+    .insert(insertData)
+    .select("release_code")
+    .single();
+
+  if (releaseError) {
+    throw new Error(`Failed to create release: ${releaseError.message}`);
+  }
+
+  const release = releaseData as { release_code: string };
+
+  const source: ReleaseRecord["source"] =
+    sourceType === "Return"
+      ? { type: "Return", id: toReturnId(sourceId) }
+      : { type: "Repair", id: toRepairId(sourceId) };
+
+  return {
+    id: toReleaseId(release.release_code),
+    deviceSerial,
+    source,
+    eligibility: "Eligible",
+    action: "None",
+    status: "Awaiting Repair Completion",
+    validation: "Repair workflow incomplete",
+    releaseDate: null,
+    resultingDeviceState: null,
+  };
+}
+
+export async function updateReleaseStatus(
+  releaseId: ReleaseId,
+  status: "Ready" | "Awaiting Repair Completion",
+  eligibility?: "Eligible" | "Blocked",
+  action?: "Release to Available" | "None",
+  validation?: "Return workflow complete" | "Repair workflow incomplete",
+  resultingDeviceState?: "Assigned" | "Available" | "In Repair" | "Awaiting Parts",
+): Promise<ReleaseRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const updateData: Record<string, unknown> = { status };
+  if (eligibility) updateData.eligibility = eligibility;
+  if (action) updateData.action = action;
+  if (validation) updateData.validation = validation;
+  if (resultingDeviceState) updateData.resulting_device_state = resultingDeviceState;
+
+  const { data: releaseData, error: releaseError } = await supabase
+    .from("releases")
+    .update(updateData)
+    .eq("release_code", releaseId)
+    .select(
+      "id,release_code,source_type,return_id,repair_id,eligibility,action,status,validation,release_date,resulting_device_state",
+    )
+    .single();
+
+  if (releaseError) {
+    throw new Error(`Failed to update release: ${releaseError.message}`);
+  }
+
+  const row = releaseData as ReleaseRow;
+  let deviceId: string;
+
+  if (row.source_type === "Return" && row.return_id) {
+    const { data: returnData } = await supabase
+      .from("returns")
+      .select("assignment_id")
+      .eq("id", row.return_id)
+      .single();
+
+    const assignment = returnData as { assignment_id: string };
+
+    const { data: assignmentData } = await supabase
+      .from("device_assignments")
+      .select("device_id")
+      .eq("id", assignment.assignment_id)
+      .single();
+
+    deviceId = (assignmentData as { device_id: string }).device_id;
+  } else {
+    const { data: repairData } = await supabase
+      .from("repairs")
+      .select("device_id")
+      .eq("id", row.repair_id)
+      .single();
+
+    deviceId = (repairData as { device_id: string }).device_id;
+  }
+
+  const { data: deviceData } = await supabase
+    .from("devices")
+    .select("serial")
+    .eq("id", deviceId)
+    .single();
+
+  let source: ReleaseRecord["source"];
+
+  if (row.source_type === "Return") {
+    source = { type: "Return", id: toReturnId(row.return_id!) };
+  } else {
+    source = { type: "Repair", id: toRepairId(row.repair_id!) };
+  }
+
+  return {
+    id: toReleaseId(row.release_code),
+    deviceSerial: (deviceData as { serial: string }).serial,
+    source,
+    eligibility: row.eligibility,
+    action: row.action,
+    status: row.status,
+    validation: row.validation,
+    releaseDate: row.release_date,
+    resultingDeviceState: row.resulting_device_state,
+  };
+}

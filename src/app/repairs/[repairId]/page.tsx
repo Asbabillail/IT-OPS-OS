@@ -1,11 +1,9 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getDeviceBySerial,
-  getRepairById,
-  getStudentById,
-} from "@/data/domain";
+import { getDeviceBySerial } from "@/lib/repositories/devices";
+import { getRepairById } from "@/lib/repositories/repairs";
+import { getStudentById } from "@/lib/repositories/students";
 
 type RepairDetailPageProps = {
   params: Promise<{
@@ -18,7 +16,7 @@ export default async function RepairDetailPage({
 }: RepairDetailPageProps) {
   const { repairId } = await params;
 
-  const repair = getRepairById(repairId);
+  const repair = await getRepairById(repairId);
 
   if (!repair) {
     return (
@@ -36,7 +34,7 @@ export default async function RepairDetailPage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic repair case exists for {repairId}.
+              No repair case found for {repairId}.
             </p>
 
             <Link
@@ -51,10 +49,10 @@ export default async function RepairDetailPage({
     );
   }
 
-  const device = getDeviceBySerial(repair.deviceSerial);
+  const device = await getDeviceBySerial(repair.deviceSerial);
 
   const owner = repair.ownerStudentId
-    ? getStudentById(repair.ownerStudentId)
+    ? await getStudentById(repair.ownerStudentId)
     : null;
 
   if (!device) {

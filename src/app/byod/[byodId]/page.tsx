@@ -1,11 +1,9 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getByodRecordById,
-  getFacultyById,
-  getStudentById,
-} from "@/data/domain";
+import { getByodRecordById } from "@/lib/repositories/byod";
+import { getFacultyById } from "@/lib/repositories/faculty";
+import { getStudentById } from "@/lib/repositories/students";
 
 type ByodDetailPageProps = {
   params: Promise<{
@@ -18,7 +16,7 @@ export default async function ByodDetailPage({
 }: ByodDetailPageProps) {
   const { byodId } = await params;
 
-  const record = getByodRecordById(byodId);
+  const record = await getByodRecordById(byodId);
 
   if (!record) {
     return (
@@ -36,7 +34,7 @@ export default async function ByodDetailPage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic BYOD record exists for {byodId}.
+              No BYOD record found for {byodId}.
             </p>
 
             <Link
@@ -53,8 +51,8 @@ export default async function ByodDetailPage({
 
   const owner =
     record.owner.type === "Student"
-      ? getStudentById(record.owner.id)
-      : getFacultyById(record.owner.id);
+      ? await getStudentById(record.owner.id)
+      : await getFacultyById(record.owner.id);
 
   if (!owner) {
     return (

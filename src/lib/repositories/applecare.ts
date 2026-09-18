@@ -208,3 +208,87 @@ export async function listAppleCareDirectory(): Promise<
     };
   });
 }
+
+export async function getAppleCareClaimById(
+  claimId: string,
+): Promise<AppleCareClaim | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("applecare_claims")
+    .select(
+      "id,claim_code,repair_id,coverage,claim_status,issue,service_type,submitted_date,decision_date",
+    )
+    .eq("claim_code", claimId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load AppleCare claim: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  const row = data as AppleCareRow;
+
+  const { data: repairData, error: repairError } = await supabase
+    .from("repairs")
+    .select("repair_code,device_id,owner_student_id")
+    .eq("id", row.repair_id)
+    .single();
+
+  if (repairError) {
+    throw new Error(
+      `Failed to load repair data: ${repairError.message}`,
+      { cause: repairError },
+    );
+  }
+
+  const repair = repairData as RepairRow;
+
+  const { data: deviceData, error: deviceError } = await supabase
+    .from("devices")
+    .select("serial")
+    .eq("id", repair.device_id)
+    .single();
+
+  if (deviceError) {
+    throw new Error(
+      `Failed to load device data: ${deviceError.message}`,
+      { cause: deviceError },
+    );
+  }
+
+  const device = deviceData as { serial: string };
+
+  let ownerStudentId: StudentId | null = null;
+
+  if (repair.owner_student_id) {
+    const { data: studentData, error: studentError } = await supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", repair.owner_student_id)
+      .single();
+
+    if (!studentError && studentData) {
+      ownerStudentId = toStudentId(
+        (studentData as { student_code: string }).student_code,
+      );
+    }
+  }
+
+  return {
+    id: toAppleCareClaimId(row.claim_code),
+    deviceSerial: device.serial,
+    repairId: toRepairId(repair.repair_code),
+    ownerStudentId,
+    coverage: row.coverage,
+    claimStatus: row.claim_status,
+    issue: row.issue,
+    serviceType: row.service_type,
+    submittedDate: row.submitted_date,
+    decisionDate: row.decision_date,
+  };
+}

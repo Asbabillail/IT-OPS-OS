@@ -1,12 +1,10 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getAppleCareClaimById,
-  getDeviceBySerial,
-  getRepairById,
-  getStudentById,
-} from "@/data/domain";
+import { getAppleCareClaimById } from "@/lib/repositories/applecare";
+import { getDeviceBySerial } from "@/lib/repositories/devices";
+import { getRepairById } from "@/lib/repositories/repairs";
+import { getStudentById } from "@/lib/repositories/students";
 
 type AppleCareClaimPageProps = {
   params: Promise<{
@@ -19,7 +17,7 @@ export default async function AppleCareClaimPage({
 }: AppleCareClaimPageProps) {
   const { claimId } = await params;
 
-  const claim = getAppleCareClaimById(claimId);
+  const claim = await getAppleCareClaimById(claimId);
 
   if (!claim) {
     return (
@@ -37,7 +35,7 @@ export default async function AppleCareClaimPage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic AppleCare claim exists for {claimId}.
+              No AppleCare claim found for {claimId}.
             </p>
 
             <Link
@@ -52,11 +50,11 @@ export default async function AppleCareClaimPage({
     );
   }
 
-  const device = getDeviceBySerial(claim.deviceSerial);
-  const repair = getRepairById(claim.repairId);
+  const device = await getDeviceBySerial(claim.deviceSerial);
+  const repair = await getRepairById(claim.repairId);
 
   const owner = claim.ownerStudentId
-    ? getStudentById(claim.ownerStudentId)
+    ? await getStudentById(claim.ownerStudentId)
     : null;
 
   if (!device || !repair) {

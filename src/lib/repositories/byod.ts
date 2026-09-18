@@ -268,3 +268,154 @@ export async function getByodRecordById(
     reviewedDate: row.reviewed_date,
   };
 }
+
+export async function createByodRecord(
+  ownerId: StudentId | FacultyId,
+  ownerType: "Student" | "Faculty",
+  serial: string,
+  deviceModel: string,
+): Promise<ByodRecord> {
+  const supabase = getSupabaseServerClient();
+
+  let studentId: string | null = null;
+  let facultyId: string | null = null;
+
+  if (ownerType === "Student") {
+    const { data: studentData, error: studentError } = await supabase
+      .from("students")
+      .select("id")
+      .eq("student_code", ownerId)
+      .single();
+
+    if (studentError) {
+      throw new Error("Student not found");
+    }
+
+    studentId = (studentData as { id: string }).id;
+  } else {
+    const { data: facultyData, error: facultyError } = await supabase
+      .from("faculty")
+      .select("id")
+      .eq("faculty_code", ownerId)
+      .single();
+
+    if (facultyError) {
+      throw new Error("Faculty not found");
+    }
+
+    facultyId = (facultyData as { id: string }).id;
+  }
+
+  const registeredDate = new Date().toISOString().split("T")[0];
+
+  const { data: byodData, error: byodError } = await supabase
+    .from("byod_records")
+    .insert({
+      student_id: studentId,
+      faculty_id: facultyId,
+      device_model: deviceModel,
+      serial,
+      ownership: "Student Owned",
+      enrollment_status: "Pending Enrollment",
+      compliance_status: "Pending Review",
+      registered_date: registeredDate,
+      enrolled_date: null,
+      reviewed_date: null,
+    })
+    .select("byod_code")
+    .single();
+
+  if (byodError) {
+    throw new Error(`Failed to create BYOD record: ${byodError.message}`);
+  }
+
+  const byod = byodData as { byod_code: string };
+
+  const owner: ByodRecord["owner"] =
+    ownerType === "Student"
+      ? { type: "Student", id: ownerId as StudentId }
+      : { type: "Faculty", id: ownerId as FacultyId };
+
+  return {
+    id: toByodId(byod.byod_code),
+    owner,
+    deviceModel,
+    serial,
+    ownership: "Student Owned",
+    enrollmentStatus: "Pending",
+    complianceStatus: "Review Required",
+    registeredDate,
+    enrolledDate: null,
+    reviewedDate: null,
+  };
+}
+
+export async function updateByodStatus(
+  byodId: ByodId,
+  enrollmentStatus?: "Enrolled" | "Pending",
+  complianceStatus?: "Compliant" | "Review Required",
+  enrolledDate?: string,
+  reviewedDate?: string,
+): Promise<ByodRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const updateData: Record<string, unknown> = {};
+  if (enrollmentStatus) updateData.enrollment_status = enrollmentStatus;
+  if (complianceStatus) updateData.compliance_status = complianceStatus;
+  if (enrolledDate) updateData.enrolled_date = enrolledDate;
+  if (reviewedDate) updateData.reviewed_date = reviewedDate;
+
+  const { data: byodData, error: byodError } = await supabase
+    .from("byod_records")
+    .update(updateData)
+    .eq("byod_code", byodId)
+    .select(
+      "byod_code,student_id,faculty_id,device_model,serial,ownership,enrollment_status,compliance_status,registered_date,enrolled_date,reviewed_date",
+    )
+    .single();
+
+  if (byodError) {
+    throw new Error(`Failed to update BYOD record: ${byodError.message}`);
+  }
+
+  const row = byodData as ByodRow;
+
+  let owner: ByodRecord["owner"];
+
+  if (row.student_id) {
+    const { data: studentData } = await supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", row.student_id)
+      .single();
+
+    owner = {
+      type: "Student",
+      id: toStudentId((studentData as { student_code: string }).student_code),
+    };
+  } else {
+    const { data: facultyData } = await supabase
+      .from("faculty")
+      .select("faculty_code")
+      .eq("id", row.faculty_id!)
+      .single();
+
+    owner = {
+      type: "Faculty",
+      id: toFacultyId((facultyData as { faculty_code: string }).faculty_code),
+    };
+  }
+
+  return {
+    id: toByodId(row.byod_code),
+    owner,
+    deviceModel: row.device_model,
+    serial: row.serial,
+    ownership: row.ownership,
+    enrollmentStatus: row.enrollment_status,
+    complianceStatus: row.compliance_status,
+    registeredDate: row.registered_date,
+    enrolledDate: row.enrolled_date,
+    reviewedDate: row.reviewed_date,
+  };
+}

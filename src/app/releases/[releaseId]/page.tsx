@@ -1,10 +1,8 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getDeviceBySerial,
-  getReleaseById,
-} from "@/data/domain";
+import { getDeviceBySerial } from "@/lib/repositories/devices";
+import { getReleaseById } from "@/lib/repositories/releases";
 
 type ReleaseDetailPageProps = {
   params: Promise<{
@@ -17,7 +15,7 @@ export default async function ReleaseDetailPage({
 }: ReleaseDetailPageProps) {
   const { releaseId } = await params;
 
-  const release = getReleaseById(releaseId);
+  const release = await getReleaseById(releaseId);
 
   if (!release) {
     return (
@@ -35,7 +33,7 @@ export default async function ReleaseDetailPage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic release exists for {releaseId}.
+              No release record found for {releaseId}.
             </p>
 
             <Link
@@ -50,7 +48,7 @@ export default async function ReleaseDetailPage({
     );
   }
 
-  const device = getDeviceBySerial(release.deviceSerial);
+  const device = await getDeviceBySerial(release.deviceSerial);
 
   if (!device) {
     return (

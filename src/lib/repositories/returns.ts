@@ -282,3 +282,158 @@ export async function getReturnById(
     repairId: toRepairId(row.repair_id),
   };
 }
+
+export async function createReturn(
+  studentId: StudentId,
+  deviceSerial: string,
+): Promise<ReturnRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const [
+    { data: studentData, error: studentError },
+    { data: deviceData, error: deviceError },
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select("id")
+      .eq("student_code", studentId)
+      .single(),
+    supabase
+      .from("devices")
+      .select("id")
+      .eq("serial", deviceSerial)
+      .single(),
+  ]);
+
+  if (studentError || deviceError) {
+    throw new Error("Student or device not found");
+  }
+
+  const student = studentData as { id: string };
+  const device = deviceData as { id: string };
+
+  const { data: assignmentData, error: assignmentError } = await supabase
+    .from("device_assignments")
+    .select("id")
+    .eq("student_id", student.id)
+    .eq("device_id", device.id)
+    .eq("status", "Active")
+    .single();
+
+  if (assignmentError) {
+    throw new Error("Active assignment not found for this student-device pair");
+  }
+
+  const assignment = assignmentData as { id: string };
+  const initiatedDate = new Date().toISOString().split("T")[0];
+
+  const { data: returnData, error: returnError } = await supabase
+    .from("returns")
+    .insert({
+      assignment_id: assignment.id,
+      return_status: "Received",
+      condition: "Good",
+      accessories: "Complete",
+      outcome: "Ready for Release",
+      initiated_date: initiatedDate,
+      received_date: initiatedDate,
+      inspection_notes: "",
+    })
+    .select("return_code")
+    .single();
+
+  if (returnError) {
+    throw new Error(`Failed to create return: ${returnError.message}`);
+  }
+
+  const ret = returnData as { return_code: string };
+
+  return {
+    id: toReturnId(ret.return_code),
+    studentId,
+    deviceSerial,
+    returnStatus: "Received",
+    condition: "Good",
+    accessories: "Complete",
+    outcome: "Ready for Release",
+    initiatedDate,
+    receivedDate: initiatedDate,
+    inspectedDate: null,
+    assignmentClosedDate: null,
+    inspectionNotes: "",
+    repairId: null,
+  };
+}
+
+export async function updateReturnStatus(
+  returnId: ReturnId,
+  returnStatus: string,
+  condition?: string,
+  accessories?: string,
+  outcome?: string,
+): Promise<ReturnRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const updateData: Record<string, unknown> = { return_status: returnStatus };
+  if (condition) updateData.condition = condition;
+  if (accessories) updateData.accessories = accessories;
+  if (outcome) updateData.outcome = outcome;
+
+  const { data: returnData, error: returnError } = await supabase
+    .from("returns")
+    .update(updateData)
+    .eq("return_code", returnId)
+    .select(
+      "id,return_code,assignment_id,return_status,condition,accessories,outcome,initiated_date,received_date,inspected_date,inspection_notes,repair_id",
+    )
+    .single();
+
+  if (returnError) {
+    throw new Error(`Failed to update return: ${returnError.message}`);
+  }
+
+  const row = returnData as ReturnRow;
+
+  const { data: assignmentData } = await supabase
+    .from("device_assignments")
+    .select("student_id,device_id")
+    .eq("id", row.assignment_id)
+    .single();
+
+  const assignment = assignmentData as AssignmentRow;
+
+  const [
+    { data: studentData },
+    { data: deviceData },
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", assignment.student_id)
+      .single(),
+    supabase
+      .from("devices")
+      .select("serial")
+      .eq("id", assignment.device_id)
+      .single(),
+  ]);
+
+  const student = studentData as StudentRow;
+  const device = deviceData as DeviceRow;
+
+  return {
+    id: toReturnId(row.return_code),
+    studentId: toStudentId(student.student_code),
+    deviceSerial: device.serial,
+    returnStatus: row.return_status,
+    condition: row.condition,
+    accessories: row.accessories,
+    outcome: row.outcome,
+    initiatedDate: row.initiated_date,
+    receivedDate: row.received_date,
+    inspectedDate: row.inspected_date,
+    assignmentClosedDate: null,
+    inspectionNotes: row.inspection_notes,
+    repairId: row.repair_id ? toRepairId(row.repair_id) : null,
+  };
+}

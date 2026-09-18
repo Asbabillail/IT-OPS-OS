@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getDeviceBySerial,
-  releases,
-} from "@/data/domain";
+import { listReleaseDirectory } from "@/lib/repositories/releases";
 
-export default function ReleasesPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ReleasesPage() {
+  const directory = await listReleaseDirectory();
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -35,7 +36,7 @@ export default function ReleasesPage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 workflow data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -51,16 +52,19 @@ export default function ReleasesPage() {
                 <span>Release</span>
               </div>
 
-              {releases.map((release) => {
-                const device = getDeviceBySerial(
-                  release.deviceSerial,
-                );
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No release records found
+                  </p>
 
-                if (!device) {
-                  return null;
-                }
-
-                return (
+                  <p className="mt-1 text-sm text-slate-500">
+                    Release records will appear here once returns or
+                    repairs are ready for device release in Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(({ release, assetTag }) => (
                   <article
                     key={release.id}
                     className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1fr_1fr_1fr_1fr_1.2fr_1.2fr_auto] lg:items-center"
@@ -70,11 +74,11 @@ export default function ReleasesPage() {
                     </p>
 
                     <p className="font-medium text-white">
-                      {device.assetTag}
+                      {assetTag}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {device.serial}
+                      {release.deviceSerial}
                     </p>
 
                     <div>
@@ -106,8 +110,8 @@ export default function ReleasesPage() {
                       Open Release
                     </Link>
                   </article>
-                );
-              })}
+                ))
+              )}
             </div>
           </section>
         </div>

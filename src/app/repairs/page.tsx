@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getDeviceBySerial,
-  repairs,
-} from "@/data/domain";
+import { listRepairDirectory } from "@/lib/repositories/repairs";
 
-export default function RepairsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function RepairsPage() {
+  const directory = await listRepairDirectory();
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -35,7 +36,7 @@ export default function RepairsPage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 workflow data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -51,16 +52,19 @@ export default function RepairsPage() {
                 <span>Case</span>
               </div>
 
-              {repairs.map((repair) => {
-                const device = getDeviceBySerial(
-                  repair.deviceSerial,
-                );
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No repair records found
+                  </p>
 
-                if (!device) {
-                  return null;
-                }
-
-                return (
+                  <p className="mt-1 text-sm text-slate-500">
+                    Repair cases will appear here once devices are sent
+                    in for service in Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(({ repair, assetTag }) => (
                   <article
                     key={repair.id}
                     className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1fr_1fr_1.2fr_0.8fr_1fr_1fr_auto] lg:items-center"
@@ -70,11 +74,11 @@ export default function RepairsPage() {
                     </p>
 
                     <p className="font-medium text-white">
-                      {device.assetTag}
+                      {assetTag}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {device.serial}
+                      {repair.deviceSerial}
                     </p>
 
                     <p className="text-sm text-slate-300">
@@ -100,8 +104,8 @@ export default function RepairsPage() {
                       Open Case
                     </Link>
                   </article>
-                );
-              })}
+                ))
+              )}
             </div>
           </section>
         </div>

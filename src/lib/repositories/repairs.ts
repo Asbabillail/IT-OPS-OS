@@ -228,3 +228,210 @@ export async function getRepairById(
     verifiedDate: row.verified_date,
   };
 }
+
+export async function createRepair(
+  deviceSerial: string,
+  issue: string,
+  priority: "High" | "Medium" | "Low",
+  ownerStudentId?: StudentId,
+): Promise<RepairRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const { data: deviceData, error: deviceError } = await supabase
+    .from("devices")
+    .select("id,serial")
+    .eq("serial", deviceSerial)
+    .single();
+
+  if (deviceError) {
+    throw new Error("Device not found");
+  }
+
+  const device = deviceData as DeviceRow;
+
+  let ownerStudentUuid: string | null = null;
+
+  if (ownerStudentId) {
+    const { data: studentData, error: studentError } = await supabase
+      .from("students")
+      .select("id")
+      .eq("student_code", ownerStudentId)
+      .single();
+
+    if (studentError) {
+      throw new Error("Student not found");
+    }
+
+    ownerStudentUuid = (studentData as { id: string }).id;
+  }
+
+  const openedDate = new Date().toISOString().split("T")[0];
+
+  const { data: repairData, error: repairError } = await supabase
+    .from("repairs")
+    .insert({
+      device_id: device.id,
+      owner_student_id: ownerStudentUuid,
+      issue,
+      priority,
+      status: "In Repair",
+      opened_date: openedDate,
+      diagnosis: null,
+      service_route: "Internal Repair",
+      sent_for_service_date: openedDate,
+      completed_date: null,
+      verified_date: null,
+    })
+    .select("repair_code")
+    .single();
+
+  if (repairError) {
+    throw new Error(`Failed to create repair: ${repairError.message}`);
+  }
+
+  const repair = repairData as { repair_code: string };
+
+  return {
+    id: toRepairId(repair.repair_code),
+    deviceSerial,
+    ownerStudentId: ownerStudentId ?? null,
+    issue,
+    priority,
+    status: "In Repair",
+    openedDate,
+    diagnosis: "",
+    serviceRoute: "Internal Repair",
+    sentForServiceDate: openedDate,
+    completedDate: null,
+    verifiedDate: null,
+  };
+}
+
+export async function updateRepairStatus(
+  repairId: RepairId,
+  status: "In Repair" | "Awaiting Parts",
+  diagnosis?: string,
+): Promise<RepairRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const updateData: Record<string, unknown> = { status };
+  if (diagnosis) {
+    updateData.diagnosis = diagnosis;
+  }
+
+  const { data: repairData, error: repairError } = await supabase
+    .from("repairs")
+    .update(updateData)
+    .eq("repair_code", repairId)
+    .select(
+      "id,repair_code,device_id,owner_student_id,issue,priority,status,opened_date,diagnosis,service_route,sent_for_service_date,completed_date,verified_date",
+    )
+    .single();
+
+  if (repairError) {
+    throw new Error(
+      `Failed to update repair: ${repairError.message}`,
+      { cause: repairError },
+    );
+  }
+
+  const row = repairData as RepairRow;
+
+  const { data: deviceData } = await supabase
+    .from("devices")
+    .select("serial")
+    .eq("id", row.device_id)
+    .single();
+
+  let ownerStudentId: StudentId | null = null;
+
+  if (row.owner_student_id) {
+    const { data: studentData } = await supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", row.owner_student_id)
+      .single();
+
+    if (studentData) {
+      ownerStudentId = toStudentId((studentData as { student_code: string }).student_code);
+    }
+  }
+
+  return {
+    id: toRepairId(row.repair_code),
+    deviceSerial: (deviceData as { serial: string }).serial,
+    ownerStudentId,
+    issue: row.issue,
+    priority: row.priority,
+    status: row.status,
+    openedDate: row.opened_date,
+    diagnosis: row.diagnosis,
+    serviceRoute: row.service_route,
+    sentForServiceDate: row.sent_for_service_date,
+    completedDate: row.completed_date,
+    verifiedDate: row.verified_date,
+  };
+}
+
+export async function markRepairComplete(
+  repairId: RepairId,
+  completedDate: string,
+): Promise<RepairRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const { data: repairData, error: repairError } = await supabase
+    .from("repairs")
+    .update({
+      status: "In Repair",
+      completed_date: completedDate,
+    })
+    .eq("repair_code", repairId)
+    .select(
+      "id,repair_code,device_id,owner_student_id,issue,priority,status,opened_date,diagnosis,service_route,sent_for_service_date,completed_date,verified_date",
+    )
+    .single();
+
+  if (repairError) {
+    throw new Error(
+      `Failed to mark repair complete: ${repairError.message}`,
+      { cause: repairError },
+    );
+  }
+
+  const row = repairData as RepairRow;
+
+  const { data: deviceData } = await supabase
+    .from("devices")
+    .select("serial")
+    .eq("id", row.device_id)
+    .single();
+
+  let ownerStudentId: StudentId | null = null;
+
+  if (row.owner_student_id) {
+    const { data: studentData } = await supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", row.owner_student_id)
+      .single();
+
+    if (studentData) {
+      ownerStudentId = toStudentId((studentData as { student_code: string }).student_code);
+    }
+  }
+
+  return {
+    id: toRepairId(row.repair_code),
+    deviceSerial: (deviceData as { serial: string }).serial,
+    ownerStudentId,
+    issue: row.issue,
+    priority: row.priority,
+    status: row.status,
+    openedDate: row.opened_date,
+    diagnosis: row.diagnosis,
+    serviceRoute: row.service_route,
+    sentForServiceDate: row.sent_for_service_date,
+    completedDate: row.completed_date,
+    verifiedDate: row.verified_date,
+  };
+}

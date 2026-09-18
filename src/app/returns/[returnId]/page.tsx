@@ -1,11 +1,9 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getDeviceBySerial,
-  getReturnById,
-  getStudentById,
-} from "@/data/domain";
+import { getDeviceBySerial } from "@/lib/repositories/devices";
+import { getReturnById } from "@/lib/repositories/returns";
+import { getStudentById } from "@/lib/repositories/students";
 
 type ReturnDetailPageProps = {
   params: Promise<{
@@ -18,7 +16,7 @@ export default async function ReturnDetailPage({
 }: ReturnDetailPageProps) {
   const { returnId } = await params;
 
-  const record = getReturnById(returnId);
+  const record = await getReturnById(returnId);
 
   if (!record) {
     return (
@@ -36,7 +34,7 @@ export default async function ReturnDetailPage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic return exists for {returnId}.
+              No return record found for {returnId}.
             </p>
 
             <Link
@@ -51,8 +49,8 @@ export default async function ReturnDetailPage({
     );
   }
 
-  const student = getStudentById(record.studentId);
-  const device = getDeviceBySerial(record.deviceSerial);
+  const student = await getStudentById(record.studentId);
+  const device = await getDeviceBySerial(record.deviceSerial);
 
   if (!student || !device) {
     return (

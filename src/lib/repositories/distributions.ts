@@ -272,3 +272,217 @@ export async function getDistributionById(
     verifiedDate: row.verified_date,
   };
 }
+
+export async function createDistribution(
+  studentId: StudentId,
+  deviceSerial: string,
+  handoverDate: string,
+): Promise<DistributionRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const [
+    { data: studentData, error: studentError },
+    { data: deviceData, error: deviceError },
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select("id")
+      .eq("student_code", studentId)
+      .single(),
+    supabase
+      .from("devices")
+      .select("id")
+      .eq("serial", deviceSerial)
+      .single(),
+  ]);
+
+  if (studentError || deviceError) {
+    throw new Error("Student or device not found");
+  }
+
+  const student = studentData as { id: string };
+  const device = deviceData as { id: string };
+
+  const { data: assignmentData, error: assignmentError } = await supabase
+    .from("device_assignments")
+    .insert({
+      device_id: device.id,
+      student_id: student.id,
+      assignee_type: "Student",
+      status: "Active",
+    })
+    .select("id")
+    .single();
+
+  if (assignmentError) {
+    throw new Error(`Failed to create assignment: ${assignmentError.message}`);
+  }
+
+  const assignment = assignmentData as { id: string };
+
+  const { data: distData, error: distError } = await supabase
+    .from("distributions")
+    .insert({
+      assignment_id: assignment.id,
+      workflow_status: "Pending Signature",
+      signature_status: "Awaiting Paper Return",
+      handover_date: handoverDate,
+    })
+    .select("distribution_code")
+    .single();
+
+  if (distError) {
+    throw new Error(`Failed to create distribution: ${distError.message}`);
+  }
+
+  const dist = distData as { distribution_code: string };
+
+  return {
+    id: toDistributionId(dist.distribution_code),
+    studentId,
+    deviceSerial,
+    status: "Pending Signature",
+    signatureStatus: "Awaiting Paper Return",
+    handoverDate,
+    returnedDate: null,
+    verifiedDate: null,
+  };
+}
+
+export async function updateDistributionSignatureStatus(
+  distributionId: DistributionId,
+  signatureStatus: "Verified" | "Awaiting Paper Return",
+  paperReturnedDate?: string,
+): Promise<DistributionRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const updateData: Record<string, unknown> = {
+    signature_status: signatureStatus,
+  };
+
+  if (paperReturnedDate) {
+    updateData.paper_returned_date = paperReturnedDate;
+  }
+
+  const { data: distData, error: distError } = await supabase
+    .from("distributions")
+    .update(updateData)
+    .eq("distribution_code", distributionId)
+    .select(
+      "id,distribution_code,assignment_id,workflow_status,signature_status,handover_date,paper_returned_date,verified_date",
+    )
+    .single();
+
+  if (distError) {
+    throw new Error(
+      `Failed to update distribution: ${distError.message}`,
+      { cause: distError },
+    );
+  }
+
+  const row = distData as DistributionRow;
+
+  const { data: assignmentData } = await supabase
+    .from("device_assignments")
+    .select("student_id,device_id")
+    .eq("id", row.assignment_id)
+    .single();
+
+  const assignment = assignmentData as AssignmentRow;
+
+  const [
+    { data: studentData },
+    { data: deviceData },
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", assignment.student_id)
+      .single(),
+    supabase
+      .from("devices")
+      .select("serial")
+      .eq("id", assignment.device_id)
+      .single(),
+  ]);
+
+  const student = studentData as StudentRow;
+  const device = deviceData as DeviceRow;
+
+  return {
+    id: toDistributionId(row.distribution_code),
+    studentId: toStudentId(student.student_code),
+    deviceSerial: device.serial,
+    status: row.workflow_status,
+    signatureStatus: row.signature_status,
+    handoverDate: row.handover_date,
+    returnedDate: row.paper_returned_date,
+    verifiedDate: row.verified_date,
+  };
+}
+
+export async function markDistributionVerified(
+  distributionId: DistributionId,
+  verifiedDate: string,
+): Promise<DistributionRecord> {
+  const supabase = getSupabaseServerClient();
+
+  const { data: distData, error: distError } = await supabase
+    .from("distributions")
+    .update({
+      workflow_status: "Verified",
+      verified_date: verifiedDate,
+    })
+    .eq("distribution_code", distributionId)
+    .select(
+      "id,distribution_code,assignment_id,workflow_status,signature_status,handover_date,paper_returned_date,verified_date",
+    )
+    .single();
+
+  if (distError) {
+    throw new Error(
+      `Failed to verify distribution: ${distError.message}`,
+      { cause: distError },
+    );
+  }
+
+  const row = distData as DistributionRow;
+
+  const { data: assignmentData } = await supabase
+    .from("device_assignments")
+    .select("student_id,device_id")
+    .eq("id", row.assignment_id)
+    .single();
+
+  const assignment = assignmentData as AssignmentRow;
+
+  const [
+    { data: studentData },
+    { data: deviceData },
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", assignment.student_id)
+      .single(),
+    supabase
+      .from("devices")
+      .select("serial")
+      .eq("id", assignment.device_id)
+      .single(),
+  ]);
+
+  const student = studentData as StudentRow;
+  const device = deviceData as DeviceRow;
+
+  return {
+    id: toDistributionId(row.distribution_code),
+    studentId: toStudentId(student.student_code),
+    deviceSerial: device.serial,
+    status: row.workflow_status,
+    signatureStatus: row.signature_status,
+    handoverDate: row.handover_date,
+    returnedDate: row.paper_returned_date,
+    verifiedDate: row.verified_date,
+  };
+}

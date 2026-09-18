@@ -1,11 +1,9 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getDeviceBySerial,
-  getDistributionById,
-  getStudentById,
-} from "@/data/domain";
+import { getDeviceBySerial } from "@/lib/repositories/devices";
+import { getDistributionById } from "@/lib/repositories/distributions";
+import { getStudentById } from "@/lib/repositories/students";
 
 type DistributionProfilePageProps = {
   params: Promise<{
@@ -18,8 +16,7 @@ export default async function DistributionProfilePage({
 }: DistributionProfilePageProps) {
   const { distributionId } = await params;
 
-  const distribution =
-    getDistributionById(distributionId);
+  const distribution = await getDistributionById(distributionId);
 
   if (!distribution) {
     return (
@@ -37,7 +34,7 @@ export default async function DistributionProfilePage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic distribution exists for {distributionId}.
+              No distribution record found for {distributionId}.
             </p>
 
             <Link
@@ -52,8 +49,8 @@ export default async function DistributionProfilePage({
     );
   }
 
-  const student = getStudentById(distribution.studentId);
-  const device = getDeviceBySerial(distribution.deviceSerial);
+  const student = await getStudentById(distribution.studentId);
+  const device = await getDeviceBySerial(distribution.deviceSerial);
 
   if (!student || !device) {
     return (

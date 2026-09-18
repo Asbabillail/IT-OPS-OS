@@ -1,11 +1,10 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getDeviceBySerial,
-  getFacultyById,
-  getStudentById,
-} from "@/data/domain";
+import { getDeviceBySerial } from "@/lib/repositories/devices";
+import { getFacultyById } from "@/lib/repositories/faculty";
+import { getStudentById } from "@/lib/repositories/students";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type DeviceProfilePageProps = {
   params: Promise<{
@@ -13,12 +12,18 @@ type DeviceProfilePageProps = {
   }>;
 };
 
+type ActiveAssignmentRow = {
+  assignee_type: "Student" | "Faculty";
+  student_id: string | null;
+  faculty_id: string | null;
+};
+
 export default async function DeviceProfilePage({
   params,
 }: DeviceProfilePageProps) {
   const { serial } = await params;
 
-  const device = getDeviceBySerial(serial);
+  const device = await getDeviceBySerial(serial);
 
   if (!device) {
     return (
@@ -36,7 +41,7 @@ export default async function DeviceProfilePage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic device record exists for serial {serial}.
+              No device record found for serial {serial}.
             </p>
 
             <Link
@@ -51,13 +56,62 @@ export default async function DeviceProfilePage({
     );
   }
 
-  const assignedStudent = device.assignedStudentId
-    ? getStudentById(device.assignedStudentId)
-    : null;
+  const supabase = getSupabaseServerClient();
 
-  const assignedFaculty = device.assignedFacultyId
-    ? getFacultyById(device.assignedFacultyId)
-    : null;
+  const { data: deviceIdData } = await supabase
+    .from("devices")
+    .select("id")
+    .eq("serial", serial)
+    .maybeSingle();
+
+  let assignedStudent = null;
+  let assignedFaculty = null;
+
+  if (deviceIdData) {
+    const { data: assignmentData } = await supabase
+      .from("device_assignments")
+      .select("assignee_type,student_id,faculty_id")
+      .eq("device_id", (deviceIdData as { id: string }).id)
+      .eq("status", "Active")
+      .is("returned_at", null)
+      .maybeSingle();
+
+    if (assignmentData) {
+      const assignment = assignmentData as ActiveAssignmentRow;
+
+      if (
+        assignment.assignee_type === "Student" &&
+        assignment.student_id
+      ) {
+        const { data: studentRow } = await supabase
+          .from("students")
+          .select("student_code")
+          .eq("id", assignment.student_id)
+          .maybeSingle();
+
+        if (studentRow) {
+          assignedStudent = await getStudentById(
+            (studentRow as { student_code: string }).student_code,
+          );
+        }
+      } else if (
+        assignment.assignee_type === "Faculty" &&
+        assignment.faculty_id
+      ) {
+        const { data: facultyRow } = await supabase
+          .from("faculty")
+          .select("faculty_code")
+          .eq("id", assignment.faculty_id)
+          .maybeSingle();
+
+        if (facultyRow) {
+          assignedFaculty = await getFacultyById(
+            (facultyRow as { faculty_code: string }).faculty_code,
+          );
+        }
+      }
+    }
+  }
 
   const assignedPerson = assignedStudent ?? assignedFaculty;
 

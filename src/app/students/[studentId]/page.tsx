@@ -1,10 +1,8 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  devices,
-  getStudentById,
-} from "@/data/domain";
+import { getStudentById } from "@/lib/repositories/students";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type StudentProfilePageProps = {
   params: Promise<{
@@ -12,12 +10,24 @@ type StudentProfilePageProps = {
   }>;
 };
 
+type AssignmentRow = {
+  device_id: string;
+};
+
+type DeviceData = {
+  id: string;
+  serial: string;
+  assetTag: string;
+  model: string;
+  status: string;
+};
+
 export default async function StudentProfilePage({
   params,
 }: StudentProfilePageProps) {
   const { studentId } = await params;
 
-  const student = getStudentById(studentId);
+  const student = await getStudentById(studentId);
 
   if (!student) {
     return (
@@ -35,7 +45,7 @@ export default async function StudentProfilePage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic student record exists for {studentId}.
+              No student record found for {studentId}.
             </p>
 
             <Link
@@ -50,9 +60,44 @@ export default async function StudentProfilePage({
     );
   }
 
-  const assignedDevice = devices.find(
-    (device) => device.assignedStudentId === student.id,
-  );
+  const supabase = getSupabaseServerClient();
+
+  const { data: assignmentData } = await supabase
+    .from("device_assignments")
+    .select("device_id")
+    .eq("assignee_type", "Student")
+    .eq("status", "Active")
+    .is("returned_at", null)
+    .match({ student_id: student.id })
+    .maybeSingle();
+
+  let assignedDevice: DeviceData | null = null;
+
+  if (assignmentData) {
+    const assignment = assignmentData as AssignmentRow;
+    const { data: deviceData } = await supabase
+      .from("devices")
+      .select("id,serial,asset_tag,model,status")
+      .eq("id", assignment.device_id)
+      .maybeSingle();
+
+    if (deviceData) {
+      const dbDevice = deviceData as {
+        id: string;
+        serial: string;
+        asset_tag: string;
+        model: string;
+        status: string;
+      };
+      assignedDevice = {
+        id: dbDevice.id,
+        serial: dbDevice.serial,
+        assetTag: dbDevice.asset_tag,
+        model: dbDevice.model,
+        status: dbDevice.status,
+      };
+    }
+  }
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">

@@ -153,3 +153,26 @@ export async function listStudentDirectory(): Promise<StudentDirectoryRow[]> {
     activeAssetTags: assetTagsByStudentId.get(row.id) ?? [],
   }));
 }
+
+export async function getStudentById(studentId: string): Promise<Student | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("students")
+    .select(
+      "id,student_code,name,grade,email,enrollment_status,guardian_name,guardian_phone",
+    )
+    .eq("student_code", studentId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load student: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  return mapStudentRow(data as StudentRow);
+}

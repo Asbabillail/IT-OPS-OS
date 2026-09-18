@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  appleCareClaims,
-  getDeviceBySerial,
-} from "@/data/domain";
+import { listAppleCareDirectory } from "@/lib/repositories/applecare";
 
-export default function AppleCarePage() {
+export const dynamic = "force-dynamic";
+
+export default async function AppleCarePage() {
+  const directory = await listAppleCareDirectory();
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -35,7 +36,7 @@ export default function AppleCarePage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 workflow data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -51,14 +52,19 @@ export default function AppleCarePage() {
                 <span>Claim</span>
               </div>
 
-              {appleCareClaims.map((claim) => {
-                const device = getDeviceBySerial(claim.deviceSerial);
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No AppleCare claims found
+                  </p>
 
-                if (!device) {
-                  return null;
-                }
-
-                return (
+                  <p className="mt-1 text-sm text-slate-500">
+                    AppleCare claims will appear here once repairs with
+                    coverage are recorded in Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(({ claim, assetTag }) => (
                   <article
                     key={claim.id}
                     className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1fr_1fr_1fr_0.9fr_1fr_1.2fr_auto] lg:items-center"
@@ -68,11 +74,11 @@ export default function AppleCarePage() {
                     </p>
 
                     <p className="font-medium text-white">
-                      {device.assetTag}
+                      {assetTag}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {device.serial}
+                      {claim.deviceSerial}
                     </p>
 
                     <p className="text-sm text-slate-300">
@@ -98,8 +104,8 @@ export default function AppleCarePage() {
                       Open Claim
                     </Link>
                   </article>
-                );
-              })}
+                ))
+              )}
             </div>
           </section>
         </div>

@@ -1,13 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  getDeviceBySerial,
-  getStudentById,
-  returns,
-} from "@/data/domain";
+import { listReturnDirectory } from "@/lib/repositories/returns";
 
-export default function ReturnsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ReturnsPage() {
+  const directory = await listReturnDirectory();
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -36,7 +36,7 @@ export default function ReturnsPage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 workflow data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -52,15 +52,19 @@ export default function ReturnsPage() {
                 <span>Return</span>
               </div>
 
-              {returns.map((record) => {
-                const student = getStudentById(record.studentId);
-                const device = getDeviceBySerial(record.deviceSerial);
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No return records found
+                  </p>
 
-                if (!student || !device) {
-                  return null;
-                }
-
-                return (
+                  <p className="mt-1 text-sm text-slate-500">
+                    Return records will appear here once devices are
+                    returned in Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(({ record, studentName, assetTag }) => (
                   <article
                     key={record.id}
                     className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1.1fr_1fr_1.1fr_auto] lg:items-center"
@@ -70,19 +74,19 @@ export default function ReturnsPage() {
                     </p>
 
                     <p className="font-medium text-white">
-                      {student.name}
+                      {studentName}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {student.id}
+                      {record.studentId}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {device.assetTag}
+                      {assetTag}
                     </p>
 
                     <p className="text-sm text-slate-300">
-                      {device.serial}
+                      {record.deviceSerial}
                     </p>
 
                     <p className="text-sm text-slate-300">
@@ -100,8 +104,8 @@ export default function ReturnsPage() {
                       Open Return
                     </Link>
                   </article>
-                );
-              })}
+                ))
+              )}
             </div>
           </section>
         </div>

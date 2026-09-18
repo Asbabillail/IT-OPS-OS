@@ -292,3 +292,147 @@ export async function getAppleCareClaimById(
     decisionDate: row.decision_date,
   };
 }
+
+export async function createAppleCareClaim(
+  repairId: RepairId,
+  issue: "Accidental Damage" | "Battery Service",
+  serviceType: "Display Repair" | "Internal Battery Service",
+): Promise<AppleCareClaim> {
+  const supabase = getSupabaseServerClient();
+
+  const { data: repairData, error: repairError } = await supabase
+    .from("repairs")
+    .select("id,repair_code,device_id,owner_student_id")
+    .eq("repair_code", repairId)
+    .single();
+
+  if (repairError) {
+    throw new Error("Repair not found");
+  }
+
+  const repair = repairData as RepairRow;
+
+  const { data: claimData, error: claimError } = await supabase
+    .from("applecare_claims")
+    .insert({
+      repair_id: repair.id,
+      coverage: "Active",
+      claim_status: "Not Required",
+      issue,
+      service_type: serviceType,
+      submitted_date: null,
+      decision_date: null,
+    })
+    .select("claim_code")
+    .single();
+
+  if (claimError) {
+    throw new Error(`Failed to create AppleCare claim: ${claimError.message}`);
+  }
+
+  const claim = claimData as { claim_code: string };
+
+  const { data: deviceData } = await supabase
+    .from("devices")
+    .select("serial")
+    .eq("id", repair.device_id)
+    .single();
+
+  let ownerStudentId: StudentId | null = null;
+
+  if (repair.owner_student_id) {
+    const { data: studentData } = await supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", repair.owner_student_id)
+      .single();
+
+    if (studentData) {
+      ownerStudentId = toStudentId(
+        (studentData as { student_code: string }).student_code,
+      );
+    }
+  }
+
+  return {
+    id: toAppleCareClaimId(claim.claim_code),
+    deviceSerial: (deviceData as { serial: string }).serial,
+    repairId,
+    ownerStudentId,
+    coverage: "Active",
+    claimStatus: "Not Required",
+    issue,
+    serviceType,
+    submittedDate: null,
+    decisionDate: null,
+  };
+}
+
+export async function updateClaimStatus(
+  claimId: AppleCareClaimId,
+  claimStatus: "Submitted" | "Not Required",
+  submittedDate?: string,
+  decisionDate?: string,
+): Promise<AppleCareClaim> {
+  const supabase = getSupabaseServerClient();
+
+  const updateData: Record<string, unknown> = { claim_status: claimStatus };
+  if (submittedDate) updateData.submitted_date = submittedDate;
+  if (decisionDate) updateData.decision_date = decisionDate;
+
+  const { data: claimData, error: claimError } = await supabase
+    .from("applecare_claims")
+    .update(updateData)
+    .eq("claim_code", claimId)
+    .select("claim_code,repair_id,coverage,claim_status,issue,service_type,submitted_date,decision_date")
+    .single();
+
+  if (claimError) {
+    throw new Error(`Failed to update claim: ${claimError.message}`);
+  }
+
+  const row = claimData as AppleCareRow;
+
+  const { data: repairData } = await supabase
+    .from("repairs")
+    .select("id,repair_code,device_id,owner_student_id")
+    .eq("id", row.repair_id)
+    .single();
+
+  const repair = repairData as RepairRow;
+
+  const { data: deviceData } = await supabase
+    .from("devices")
+    .select("serial")
+    .eq("id", repair.device_id)
+    .single();
+
+  let ownerStudentId: StudentId | null = null;
+
+  if (repair.owner_student_id) {
+    const { data: studentData } = await supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", repair.owner_student_id)
+      .single();
+
+    if (studentData) {
+      ownerStudentId = toStudentId(
+        (studentData as { student_code: string }).student_code,
+      );
+    }
+  }
+
+  return {
+    id: toAppleCareClaimId(row.claim_code),
+    deviceSerial: (deviceData as { serial: string }).serial,
+    repairId: toRepairId(repair.repair_code),
+    ownerStudentId,
+    coverage: row.coverage,
+    claimStatus: row.claim_status,
+    issue: row.issue,
+    serviceType: row.service_type,
+    submittedDate: row.submitted_date,
+    decisionDate: row.decision_date,
+  };
+}

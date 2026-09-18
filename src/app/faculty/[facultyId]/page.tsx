@@ -1,10 +1,8 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  devices,
-  getFacultyById,
-} from "@/data/domain";
+import { getFacultyById } from "@/lib/repositories/faculty";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type FacultyProfilePageProps = {
   params: Promise<{
@@ -12,12 +10,23 @@ type FacultyProfilePageProps = {
   }>;
 };
 
+type AssignmentRow = {
+  device_id: string;
+};
+
+type DeviceData = {
+  serial: string;
+  assetTag: string;
+  model: string;
+  status: string;
+};
+
 export default async function FacultyProfilePage({
   params,
 }: FacultyProfilePageProps) {
   const { facultyId } = await params;
 
-  const facultyMember = getFacultyById(facultyId);
+  const facultyMember = await getFacultyById(facultyId);
 
   if (!facultyMember) {
     return (
@@ -35,7 +44,7 @@ export default async function FacultyProfilePage({
             </h1>
 
             <p className="mt-3 text-sm text-slate-400">
-              No synthetic faculty record exists for {facultyId}.
+              No faculty record found for {facultyId}.
             </p>
 
             <Link
@@ -50,10 +59,53 @@ export default async function FacultyProfilePage({
     );
   }
 
-  const assignedDevice = devices.find(
-    (device) =>
-      device.assignedFacultyId === facultyMember.id,
-  );
+  const supabase = getSupabaseServerClient();
+
+  const { data: facultyIdData } = await supabase
+    .from("faculty")
+    .select("id")
+    .eq("faculty_code", facultyMember.id)
+    .maybeSingle();
+
+  let assignmentData: AssignmentRow | null = null;
+
+  if (facultyIdData) {
+    const { data } = await supabase
+      .from("device_assignments")
+      .select("device_id")
+      .eq("assignee_type", "Faculty")
+      .eq("status", "Active")
+      .is("returned_at", null)
+      .eq("faculty_id", (facultyIdData as { id: string }).id)
+      .maybeSingle();
+
+    assignmentData = data as AssignmentRow | null;
+  }
+
+  let assignedDevice: DeviceData | null = null;
+
+  if (assignmentData) {
+    const { data: deviceData } = await supabase
+      .from("devices")
+      .select("id,serial,asset_tag,model,status")
+      .eq("id", (assignmentData as { device_id: string }).device_id)
+      .maybeSingle();
+
+    if (deviceData) {
+      const dbDevice = deviceData as {
+        serial: string;
+        asset_tag: string;
+        model: string;
+        status: string;
+      };
+      assignedDevice = {
+        serial: dbDevice.serial,
+        assetTag: dbDevice.asset_tag,
+        model: dbDevice.model,
+        status: dbDevice.status,
+      };
+    }
+  }
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">

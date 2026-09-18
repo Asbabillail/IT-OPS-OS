@@ -62,14 +62,26 @@ export default async function StudentProfilePage({
 
   const supabase = getSupabaseServerClient();
 
-  const { data: assignmentData } = await supabase
-    .from("device_assignments")
-    .select("device_id")
-    .eq("assignee_type", "Student")
-    .eq("status", "Active")
-    .is("returned_at", null)
-    .match({ student_id: student.id })
+  const { data: studentIdData } = await supabase
+    .from("students")
+    .select("id")
+    .eq("student_code", student.id)
     .maybeSingle();
+
+  let assignmentData: AssignmentRow | null = null;
+
+  if (studentIdData) {
+    const { data } = await supabase
+      .from("device_assignments")
+      .select("device_id")
+      .eq("assignee_type", "Student")
+      .eq("status", "Active")
+      .is("returned_at", null)
+      .eq("student_id", (studentIdData as { id: string }).id)
+      .maybeSingle();
+
+    assignmentData = data as AssignmentRow | null;
+  }
 
   let assignedDevice: DeviceData | null = null;
 

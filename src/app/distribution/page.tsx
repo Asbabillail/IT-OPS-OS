@@ -1,13 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  distributions,
-  getDeviceBySerial,
-  getStudentById,
-} from "@/data/domain";
+import { listDistributionDirectory } from "@/lib/repositories/distributions";
 
-export default function DistributionPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DistributionPage() {
+  const directory = await listDistributionDirectory();
+
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -36,7 +36,7 @@ export default function DistributionPage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 workflow data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -51,57 +51,58 @@ export default function DistributionPage() {
                 <span>Workflow</span>
               </div>
 
-              {distributions.map((distribution) => {
-                const student = getStudentById(
-                  distribution.studentId,
-                );
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No distribution records found
+                  </p>
 
-                const device = getDeviceBySerial(
-                  distribution.deviceSerial,
-                );
-
-                if (!student || !device) {
-                  return null;
-                }
-
-                return (
-                  <article
-                    key={distribution.id}
-                    className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1fr_1.2fr_auto] lg:items-center"
-                  >
-                    <p className="text-sm text-slate-300">
-                      {distribution.id}
-                    </p>
-
-                    <p className="font-medium text-white">
-                      {student.name}
-                    </p>
-
-                    <p className="text-sm text-slate-300">
-                      {student.id}
-                    </p>
-
-                    <p className="text-sm text-slate-300">
-                      {device.assetTag}
-                    </p>
-
-                    <p className="text-sm text-slate-300">
-                      {distribution.status}
-                    </p>
-
-                    <p className="text-sm text-slate-300">
-                      {distribution.signatureStatus}
-                    </p>
-
-                    <Link
-                      href={`/distribution/${distribution.id}`}
-                      className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                  <p className="mt-1 text-sm text-slate-500">
+                    Distribution records will appear here once device
+                    handovers are recorded in Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(
+                  ({ distribution, studentName, assetTag }) => (
+                    <article
+                      key={distribution.id}
+                      className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1fr_1.2fr_auto] lg:items-center"
                     >
-                      Open Workflow
-                    </Link>
-                  </article>
-                );
-              })}
+                      <p className="text-sm text-slate-300">
+                        {distribution.id}
+                      </p>
+
+                      <p className="font-medium text-white">
+                        {studentName}
+                      </p>
+
+                      <p className="text-sm text-slate-300">
+                        {distribution.studentId}
+                      </p>
+
+                      <p className="text-sm text-slate-300">
+                        {assetTag}
+                      </p>
+
+                      <p className="text-sm text-slate-300">
+                        {distribution.status}
+                      </p>
+
+                      <p className="text-sm text-slate-300">
+                        {distribution.signatureStatus}
+                      </p>
+
+                      <Link
+                        href={`/distribution/${distribution.id}`}
+                        className="inline-flex justify-self-start rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 lg:justify-self-end"
+                      >
+                        Open Workflow
+                      </Link>
+                    </article>
+                  ),
+                )
+              )}
             </div>
           </section>
         </div>

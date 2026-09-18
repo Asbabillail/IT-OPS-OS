@@ -147,3 +147,26 @@ export async function listFacultyDirectory(): Promise<FacultyDirectoryRow[]> {
     activeAssetTags: assetTagsByFacultyId.get(row.id) ?? [],
   }));
 }
+
+export async function getFacultyById(facultyId: string): Promise<Faculty | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("faculty")
+    .select(
+      "id,faculty_code,name,department,email,employment_status",
+    )
+    .eq("faculty_code", facultyId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load faculty: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  return mapFacultyRow(data as FacultyRow);
+}

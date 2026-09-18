@@ -198,3 +198,28 @@ export async function listDeviceDirectory(): Promise<DeviceDirectoryRow[]> {
     assignedTo: assignedToByDeviceId.get(row.id) ?? null,
   }));
 }
+
+export async function getDeviceBySerial(
+  serial: string,
+): Promise<Device | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("devices")
+    .select(
+      "id,serial,asset_tag,model,storage,status,purchase_date,warranty_status,applecare_status",
+    )
+    .eq("serial", serial)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load device: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  return mapDeviceRow(data as DeviceRow);
+}

@@ -195,3 +195,76 @@ export async function listByodDirectory(): Promise<ByodDirectoryRow[]> {
     };
   });
 }
+
+export async function getByodRecordById(
+  byodId: string,
+): Promise<ByodRecord | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("byod_records")
+    .select(
+      "id,byod_code,owner_type,student_id,faculty_id,device_model,serial,ownership,enrollment_status,compliance_status,registered_date,enrolled_date,reviewed_date",
+    )
+    .eq("byod_code", byodId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load BYOD record: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  const row = data as ByodRow;
+  let owner: ByodRecord["owner"];
+
+  if (row.owner_type === "Student" && row.student_id) {
+    const { data: studentData } = await supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", row.student_id)
+      .single();
+
+    if (studentData) {
+      owner = {
+        type: "Student",
+        id: toStudentId((studentData as { student_code: string }).student_code),
+      };
+    } else {
+      return null;
+    }
+  } else if (row.owner_type === "Faculty" && row.faculty_id) {
+    const { data: facultyData } = await supabase
+      .from("faculty")
+      .select("faculty_code")
+      .eq("id", row.faculty_id)
+      .single();
+
+    if (facultyData) {
+      owner = {
+        type: "Faculty",
+        id: toFacultyId((facultyData as { faculty_code: string }).faculty_code),
+      };
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+
+  return {
+    id: toByodId(row.byod_code),
+    owner,
+    deviceModel: row.device_model,
+    serial: row.serial,
+    ownership: row.ownership,
+    enrollmentStatus: row.enrollment_status,
+    complianceStatus: row.compliance_status,
+    registeredDate: row.registered_date,
+    enrolledDate: row.enrolled_date,
+    reviewedDate: row.reviewed_date,
+  };
+}

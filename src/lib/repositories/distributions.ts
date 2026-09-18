@@ -198,3 +198,77 @@ export async function listDistributionDirectory(): Promise<
     };
   });
 }
+
+export async function getDistributionById(
+  distributionId: string,
+): Promise<DistributionRecord | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("distributions")
+    .select(
+      "id,distribution_code,assignment_id,workflow_status,signature_status,handover_date,paper_returned_date,verified_date",
+    )
+    .eq("distribution_code", distributionId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load distribution: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  const row = data as DistributionRow;
+
+  const { data: assignmentData, error: assignmentError } = await supabase
+    .from("device_assignments")
+    .select("student_id,device_id")
+    .eq("id", row.assignment_id)
+    .single();
+
+  if (assignmentError) {
+    throw new Error(
+      `Failed to load assignment: ${assignmentError.message}`,
+      { cause: assignmentError },
+    );
+  }
+
+  const assignment = assignmentData as AssignmentRow;
+
+  const [
+    { data: studentData, error: studentError },
+    { data: deviceData, error: deviceError },
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select("id,student_code")
+      .eq("id", assignment.student_id)
+      .single(),
+    supabase
+      .from("devices")
+      .select("id,serial")
+      .eq("id", assignment.device_id)
+      .single(),
+  ]);
+
+  if (studentError || deviceError) {
+    throw new Error("Failed to resolve distribution references");
+  }
+
+  const student = studentData as StudentRow;
+  const device = deviceData as DeviceRow;
+
+  return {
+    id: toDistributionId(row.distribution_code),
+    studentId: toStudentId(student.student_code),
+    deviceSerial: device.serial,
+    status: row.workflow_status,
+    signatureStatus: row.signature_status,
+    handoverDate: row.handover_date,
+    returnedDate: row.paper_returned_date,
+    verifiedDate: row.verified_date,
+  };
+}

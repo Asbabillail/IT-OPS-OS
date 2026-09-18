@@ -209,3 +209,76 @@ export async function listReturnDirectory(): Promise<ReturnDirectoryRow[]> {
     };
   });
 }
+
+export async function getReturnById(
+  returnId: string,
+): Promise<ReturnRecord | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("returns")
+    .select(
+      "id,return_code,assignment_id,return_status,condition,accessories,outcome,initiated_date,received_date,inspected_date,inspection_notes,repair_id",
+    )
+    .eq("return_code", returnId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load return: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  const row = data as ReturnRow;
+
+  const { data: assignmentData } = await supabase
+    .from("device_assignments")
+    .select("student_id,device_id")
+    .eq("id", row.assignment_id)
+    .single();
+
+  if (!assignmentData) {
+    return null;
+  }
+
+  const assignment = assignmentData as AssignmentRow;
+
+  const [
+    { data: studentData },
+    { data: deviceData },
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", assignment.student_id)
+      .single(),
+    supabase
+      .from("devices")
+      .select("serial")
+      .eq("id", assignment.device_id)
+      .single(),
+  ]);
+
+  if (!studentData || !deviceData) {
+    return null;
+  }
+
+  return {
+    id: toReturnId(row.return_code),
+    studentId: toStudentId((studentData as { student_code: string }).student_code),
+    deviceSerial: (deviceData as { serial: string }).serial,
+    returnStatus: row.return_status,
+    condition: row.condition,
+    accessories: row.accessories,
+    outcome: row.outcome,
+    initiatedDate: row.initiated_date,
+    receivedDate: row.received_date,
+    inspectedDate: row.inspected_date,
+    assignmentClosedDate: null,
+    inspectionNotes: row.inspection_notes,
+    repairId: toRepairId(row.repair_id),
+  };
+}

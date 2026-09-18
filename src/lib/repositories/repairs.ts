@@ -164,3 +164,67 @@ export async function listRepairDirectory(): Promise<RepairDirectoryRow[]> {
     };
   });
 }
+
+export async function getRepairById(
+  repairId: string,
+): Promise<RepairRecord | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("repairs")
+    .select(
+      "id,repair_code,device_id,owner_student_id,issue,priority,status,opened_date,diagnosis,service_route,sent_for_service_date,completed_date,verified_date",
+    )
+    .eq("repair_code", repairId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load repair: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  const row = data as RepairRow;
+
+  const { data: deviceData } = await supabase
+    .from("devices")
+    .select("serial")
+    .eq("id", row.device_id)
+    .single();
+
+  if (!deviceData) {
+    return null;
+  }
+
+  let ownerStudentId: StudentId | null = null;
+
+  if (row.owner_student_id) {
+    const { data: studentData } = await supabase
+      .from("students")
+      .select("student_code")
+      .eq("id", row.owner_student_id)
+      .single();
+
+    if (studentData) {
+      ownerStudentId = toStudentId((studentData as { student_code: string }).student_code);
+    }
+  }
+
+  return {
+    id: toRepairId(row.repair_code),
+    deviceSerial: (deviceData as { serial: string }).serial,
+    ownerStudentId,
+    issue: row.issue,
+    priority: row.priority,
+    status: row.status,
+    openedDate: row.opened_date,
+    diagnosis: row.diagnosis,
+    serviceRoute: row.service_route,
+    sentForServiceDate: row.sent_for_service_date,
+    completedDate: row.completed_date,
+    verifiedDate: row.verified_date,
+  };
+}

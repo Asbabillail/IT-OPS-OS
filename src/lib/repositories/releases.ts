@@ -279,3 +279,97 @@ export async function listReleaseDirectory(): Promise<ReleaseDirectoryRow[]> {
     };
   });
 }
+
+export async function getReleaseById(
+  releaseId: string,
+): Promise<ReleaseRecord | null> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("releases")
+    .select(
+      "id,release_code,source_type,return_id,repair_id,eligibility,action,status,validation,release_date,resulting_device_state",
+    )
+    .eq("release_code", releaseId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(`Failed to load release: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  const row = data as ReleaseRow;
+  let deviceId: string;
+
+  if (row.source_type === "Return" && row.return_id) {
+    const { data: returnData } = await supabase
+      .from("returns")
+      .select("assignment_id")
+      .eq("id", row.return_id)
+      .single();
+
+    if (!returnData) {
+      return null;
+    }
+
+    const { data: assignmentData } = await supabase
+      .from("device_assignments")
+      .select("device_id")
+      .eq("id", (returnData as { assignment_id: string }).assignment_id)
+      .single();
+
+    if (!assignmentData) {
+      return null;
+    }
+
+    deviceId = (assignmentData as { device_id: string }).device_id;
+  } else if (row.source_type === "Repair" && row.repair_id) {
+    const { data: repairData } = await supabase
+      .from("repairs")
+      .select("device_id")
+      .eq("id", row.repair_id)
+      .single();
+
+    if (!repairData) {
+      return null;
+    }
+
+    deviceId = (repairData as { device_id: string }).device_id;
+  } else {
+    return null;
+  }
+
+  const { data: deviceData } = await supabase
+    .from("devices")
+    .select("serial")
+    .eq("id", deviceId)
+    .single();
+
+  if (!deviceData) {
+    return null;
+  }
+
+  let source: ReleaseRecord["source"];
+
+  if (row.source_type === "Return") {
+    source = { type: "Return", id: toReturnId(row.return_id!) };
+  } else {
+    source = { type: "Repair", id: toRepairId(row.repair_id!) };
+  }
+
+  return {
+    id: toReleaseId(row.release_code),
+    deviceSerial: (deviceData as { serial: string }).serial,
+    source,
+    eligibility: row.eligibility,
+    action: row.action,
+    status: row.status,
+    validation: row.validation,
+    releaseDate: row.release_date,
+    resultingDeviceState: row.resulting_device_state,
+  };
+}

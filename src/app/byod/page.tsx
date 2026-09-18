@@ -1,23 +1,13 @@
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  byodRecords,
-  getFacultyById,
-  getStudentById,
-} from "@/data/domain";
+import { listByodDirectory } from "@/lib/repositories/byod";
 
-function getOwnerName(
-  record: (typeof byodRecords)[number],
-): string {
-  if (record.owner.type === "Student") {
-    return getStudentById(record.owner.id)?.name ?? "Unknown Student";
-  }
+export const dynamic = "force-dynamic";
 
-  return getFacultyById(record.owner.id)?.name ?? "Unknown Faculty";
-}
+export default async function ByodPage() {
+  const directory = await listByodDirectory();
 
-export default function ByodPage() {
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
       <AppSidebar />
@@ -46,7 +36,7 @@ export default function ByodPage() {
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Synthetic Phase 1 workflow data
+                Live Phase 1 Supabase data
               </p>
             </div>
 
@@ -61,10 +51,19 @@ export default function ByodPage() {
                 <span>Record</span>
               </div>
 
-              {byodRecords.map((record) => {
-                const ownerName = getOwnerName(record);
+              {directory.length === 0 ? (
+                <div className="px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-300">
+                    No BYOD records found
+                  </p>
 
-                return (
+                  <p className="mt-1 text-sm text-slate-500">
+                    BYOD records will appear here once devices are
+                    registered in Supabase.
+                  </p>
+                </div>
+              ) : (
+                directory.map(({ record, ownerName }) => (
                   <article
                     key={record.id}
                     className="grid gap-4 border-b border-slate-800 px-5 py-4 last:border-b-0 lg:grid-cols-[1fr_1.1fr_1fr_1fr_1fr_1fr_auto] lg:items-center"
@@ -106,8 +105,8 @@ export default function ByodPage() {
                       Open Record
                     </Link>
                   </article>
-                );
-              })}
+                ))
+              )}
             </div>
           </section>
         </div>

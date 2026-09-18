@@ -1,12 +1,19 @@
 import Link from "next/link";
 
+import { ReturnsForm } from "@/components/returns-form";
 import { AppSidebar } from "@/components/app-sidebar";
 import { listReturnDirectory } from "@/lib/repositories/returns";
+import { listStudents } from "@/lib/repositories/students";
+import { listDevices } from "@/lib/repositories/devices";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReturnsPage() {
-  const directory = await listReturnDirectory();
+  const [directory, students, devices] = await Promise.all([
+    listReturnDirectory(),
+    listStudents(),
+    listDevices(),
+  ]);
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -28,6 +35,10 @@ export default async function ReturnsPage() {
               closure, and next operational state.
             </p>
           </header>
+
+          <section className="mt-8 mb-12">
+            <ReturnsForm students={students} devices={devices} />
+          </section>
 
           <section className="mt-8">
             <div className="mb-4">

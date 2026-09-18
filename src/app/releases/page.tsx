@@ -1,12 +1,17 @@
 import Link from "next/link";
 
+import { ReleasesForm } from "@/components/releases-form";
 import { AppSidebar } from "@/components/app-sidebar";
 import { listReleaseDirectory } from "@/lib/repositories/releases";
+import { listDevices } from "@/lib/repositories/devices";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReleasesPage() {
-  const directory = await listReleaseDirectory();
+  const [directory, devices] = await Promise.all([
+    listReleaseDirectory(),
+    listDevices(),
+  ]);
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -28,6 +33,10 @@ export default async function ReleasesPage() {
               next operational state.
             </p>
           </header>
+
+          <section className="mt-8 mb-12">
+            <ReleasesForm devices={devices} />
+          </section>
 
           <section className="mt-8">
             <div className="mb-4">

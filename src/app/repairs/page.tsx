@@ -1,12 +1,17 @@
 import Link from "next/link";
 
+import { RepairsForm } from "@/components/repairs-form";
 import { AppSidebar } from "@/components/app-sidebar";
 import { listRepairDirectory } from "@/lib/repositories/repairs";
+import { listDevices } from "@/lib/repositories/devices";
 
 export const dynamic = "force-dynamic";
 
 export default async function RepairsPage() {
-  const directory = await listRepairDirectory();
+  const [directory, devices] = await Promise.all([
+    listRepairDirectory(),
+    listDevices(),
+  ]);
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -28,6 +33,10 @@ export default async function RepairsPage() {
               and return-to-service state.
             </p>
           </header>
+
+          <section className="mt-8 mb-12">
+            <RepairsForm devices={devices} />
+          </section>
 
           <section className="mt-8">
             <div className="mb-4">

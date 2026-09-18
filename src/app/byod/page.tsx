@@ -1,12 +1,17 @@
 import Link from "next/link";
 
+import { ByodForm } from "@/components/byod-form";
 import { AppSidebar } from "@/components/app-sidebar";
 import { listByodDirectory } from "@/lib/repositories/byod";
+import { listStudents } from "@/lib/repositories/students";
 
 export const dynamic = "force-dynamic";
 
 export default async function ByodPage() {
-  const directory = await listByodDirectory();
+  const [directory, students] = await Promise.all([
+    listByodDirectory(),
+    listStudents(),
+  ]);
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -28,6 +33,10 @@ export default async function ByodPage() {
               compliance review.
             </p>
           </header>
+
+          <section className="mt-8 mb-12">
+            <ByodForm students={students} />
+          </section>
 
           <section className="mt-8">
             <div className="mb-4">

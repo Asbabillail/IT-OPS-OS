@@ -1,12 +1,17 @@
 import Link from "next/link";
 
+import { ApplecareForm } from "@/components/applecare-form";
 import { AppSidebar } from "@/components/app-sidebar";
 import { listAppleCareDirectory } from "@/lib/repositories/applecare";
+import { listRepairDirectory } from "@/lib/repositories/repairs";
 
 export const dynamic = "force-dynamic";
 
 export default async function AppleCarePage() {
-  const directory = await listAppleCareDirectory();
+  const [directory, repairs] = await Promise.all([
+    listAppleCareDirectory(),
+    listRepairDirectory(),
+  ]);
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -28,6 +33,15 @@ export default async function AppleCarePage() {
               and service outcomes.
             </p>
           </header>
+
+          <section className="mt-8 mb-12">
+            <ApplecareForm
+              repairCases={repairs.map((r) => ({
+                id: r.repair.id,
+                deviceSerial: r.repair.deviceSerial,
+              }))}
+            />
+          </section>
 
           <section className="mt-8">
             <div className="mb-4">

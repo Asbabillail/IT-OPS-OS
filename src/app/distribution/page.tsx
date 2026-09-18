@@ -1,12 +1,19 @@
 import Link from "next/link";
 
+import { DistributionForm } from "@/components/distribution-form";
 import { AppSidebar } from "@/components/app-sidebar";
 import { listDistributionDirectory } from "@/lib/repositories/distributions";
+import { listDevices } from "@/lib/repositories/devices";
+import { listStudents } from "@/lib/repositories/students";
 
 export const dynamic = "force-dynamic";
 
 export default async function DistributionPage() {
-  const directory = await listDistributionDirectory();
+  const [directory, students, devices] = await Promise.all([
+    listDistributionDirectory(),
+    listStudents(),
+    listDevices(),
+  ]);
 
   return (
     <main className="flex min-h-screen bg-slate-950 text-white">
@@ -28,6 +35,10 @@ export default async function DistributionPage() {
               verification.
             </p>
           </header>
+
+          <section className="mt-8 mb-12">
+            <DistributionForm students={students} devices={devices} />
+          </section>
 
           <section className="mt-8">
             <div className="mb-4">

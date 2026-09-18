@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(gh pr *)",
+      "Bash(npm run *)",
+      "Bash(echo \"Dev server started \\(PID: $!\\)\")",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s 'http://localhost:3000/students/STU-2026-041')",
+      "Bash(pkill -f \"npm run dev\")",
+      "Bash(git checkout *)",
+      "Bash(git commit -m 'feat: complete Phase 2.2 - all 6 forms with letterhead *)"
+    ]
+  }
+}
